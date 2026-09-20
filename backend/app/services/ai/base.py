@@ -57,3 +57,16 @@ class AIProvider(abc.ABC):
         value is an unvalidated dict; structured validation happens in the
         pipeline.
         """
+
+    def generate_career_insights(self, messages: list[dict]) -> dict:
+        """Return a JSON-object-shaped dict of career insights for verified data.
+
+        ``messages`` is the full system+user message list built by the
+        career-insights prompts module; the provider is expected to return a
+        plain JSON object (never raw text or markdown).
+
+        Defaults to raising :class:`AIOutputError` so existing providers keep
+        working unchanged; providers that support explanatory insights override
+        this method. Raises a subclass of :class:`AIProviderError` on failure.
+        """
+        raise AIOutputError("Provider does not support career insights.")

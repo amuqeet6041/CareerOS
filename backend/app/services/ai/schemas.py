@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 
 from pydantic import BaseModel, Field, field_validator
+from typing import Literal
 
 _MONTH_YEAR_RE = re.compile(r"^(\d{4})-(0[1-9]|1[0-2])$")
 _FULL_DATE_RE = re.compile(r"^(\d{4})-(0[1-9]|1[0-2])-\d{2}$")
@@ -83,3 +84,33 @@ class AIResumeExtraction(BaseModel):
     education: list[AIEducation] = []
     certifications: list[AICertification] = []
     experience: list[AIExperience] = []
+
+
+class AICareerDirection(BaseModel):
+    """Explanatory content for one potential career direction."""
+    title: str
+    reason: str = ""
+    next_steps: list[str] = []
+
+
+class AISkillDevelopment(BaseModel):
+    """One skill-development recommendation, with an explicit priority."""
+    skill: str
+    reason: str = ""
+    priority: Literal["high", "medium", "low"] = "medium"
+
+
+class AICareerInsights(BaseModel):
+    """Structured shape providers are requested to return for career insights.
+
+    Validation enforces type safety and the no-fabrication rule is applied by
+    the career-insights service afterwards: skills referenced in
+    ``skill_development`` are kept only when they exist in the verified
+    vocabulary (user skills + deterministic skill gaps).
+    """
+
+    summary: str = ""
+    career_directions: list[AICareerDirection] = []
+    skill_development: list[AISkillDevelopment] = []
+    resume_suggestions: list[str] = []
+    action_plan: list[str] = []

@@ -75,11 +75,12 @@ class OpenAICompatibleProvider(AIProvider):
         self._base_url = base_url.rstrip("/")
         self._timeout_seconds = timeout_seconds
 
-    def extract_resume_information(self, text: str) -> dict:
+    def _chat(self, messages: list[dict]) -> dict:
+        """Call the chat-completions endpoint and return a parsed JSON object."""
         url = f"{self._base_url}/chat/completions"
         payload = {
             "model": self._model,
-            "messages": build_messages(text),
+            "messages": messages,
             "response_format": {"type": "json_object"},
             "temperature": 0,
         }
@@ -126,6 +127,12 @@ class OpenAICompatibleProvider(AIProvider):
 
         return parse_json_payload(content)
 
+    def extract_resume_information(self, text: str) -> dict:
+        return self._chat(build_messages(text))
+
+    def generate_career_insights(self, messages: list[dict]) -> dict:
+        return self._chat(messages)
+
 
 class MockAIProvider(AIProvider):
     """Deterministic provider for development and tests."""
@@ -137,6 +144,11 @@ class MockAIProvider(AIProvider):
         self._error = error
 
     def extract_resume_information(self, text: str) -> dict:
+        if self._error is not None:
+            raise self._error
+        return self._response
+
+    def generate_career_insights(self, messages: list[dict]) -> dict:
         if self._error is not None:
             raise self._error
         return self._response

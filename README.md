@@ -4,7 +4,7 @@ A career platform that reads your resume, extracts structured information
 (skills, education, experience, certifications), and will later match you to
 real job opportunities with Skill Match % and Qualification Match % scores.
 
-> **Status:** Phases 0–6 complete: the app boots, registers/logs in, uploads
+> **Status:** Phases 0–7 complete: the app boots, registers/logs in, uploads
 > and parses resumes, ingests a database-backed job catalog
 > (search/filter/paginate API), matches a user's resume against a job with
 > explained skill/qualification/experience scores, (Phase 3) enriches resumes
@@ -15,14 +15,20 @@ real job opportunities with Skill Match % and Qualification Match % scores.
 > search/filters/sort/pagination, URL-synced), (Phase 5) wires real
 > persisted saved-jobs and application-tracking flows (save/unsave, Saved Jobs
 > and My Applications pages, tracked Apply that still opens the external
-> application), and (Phase 6) turns the student dashboard into a live,
+> application), (Phase 6) turns the student dashboard into a live,
 > personalized view composed entirely from real APIs (profile summary,
 > resume status with retry, transparent profile completion, bounded match-
 > ranked recommendations, application stats, recent applications, saved-jobs
-> summary, and a factual career overview — no fake numbers). Real external job
+> summary, and a factual career overview — no fake numbers), and (Phase 7)
+> adds Career Insights (`/student-dashboard/career-insights`): a
+> deterministic, stateless analysis of the user's own resume against active
+> jobs — verified profile summary, strengths, ranked skill gaps, potential
+> career directions, an evidence-based action plan, and optional AI
+> explanations that are strictly sanitized and clearly statused
+> (`available | disabled | failed`). Real external job
 > providers remain **not implemented yet** — see
 > [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md) and
-> [`docs/PHASE_6_REPORT.md`](docs/PHASE_6_REPORT.md).
+> [`docs/PHASE_7_REPORT.md`](docs/PHASE_7_REPORT.md).
 
 ## Implemented
 - User registration and JWT-based login (HS256), protected routes
@@ -67,6 +73,17 @@ real job opportunities with Skill Match % and Qualification Match % scores.
   application stats + recent applications from real records, saved-jobs
   summary, and a factual career overview; every section has its own
   skeleton/error/retry/empty state and the layout is responsive to 375px
+- **Career insights (Phase 7)**: `GET /api/career-insights` +
+  `/student-dashboard/career-insights` — a deterministic, stateless analysis of
+  the authenticated user's **own** resume against bounded active jobs: verified
+  profile summary, strengths (verified skills required by relevant jobs),
+  ranked skill gaps with priority + demand explanation, career directions
+  grouped by job title (count, average match, supporting/missing skills), and
+  an evidence-based action plan + resume suggestions; optional provider-agnostic
+  AI explanations are strictly vocabulary-sanitized, validated against a typed
+  schema, and surfaced with an explicit `available | disabled | failed` status
+  — the deterministic analysis is always the source of truth and renders even
+  when AI is off or failing
 
 ## Not Yet Implemented (planned phases)
 - Real/live external job provider integrations or scraping (demo provider only)
@@ -74,8 +91,9 @@ real job opportunities with Skill Match % and Qualification Match % scores.
   remains the deterministic engine)
 - Application status editing in the UI (backend PATCH exists) and server-side
   match ordering for list ranking
-- AI career insights: skill-gap analysis, career path suggestions, salary
-  prediction, trending roles (the dashboard stays factual only)
+- Trending roles and salary prediction surfaced inside insights (requires real
+  provider data; deterministic analysis explicitly avoids fabricated market
+  statistics)
 - Email, password reset, OAuth
 
 ## Tech Stack
@@ -223,5 +241,6 @@ development roadmap. Phase reports: [`docs/PHASE_0_REPORT.md`](docs/PHASE_0_REPO
 [`docs/PHASE_2_REPORT.md`](docs/PHASE_2_REPORT.md),
 [`docs/PHASE_3_REPORT.md`](docs/PHASE_3_REPORT.md),
 [`docs/PHASE_4_REPORT.md`](docs/PHASE_4_REPORT.md),
-[`docs/PHASE_5_REPORT.md`](docs/PHASE_5_REPORT.md), and
-[`docs/PHASE_6_REPORT.md`](docs/PHASE_6_REPORT.md).
+[`docs/PHASE_5_REPORT.md`](docs/PHASE_5_REPORT.md),
+[`docs/PHASE_6_REPORT.md`](docs/PHASE_6_REPORT.md), and
+[`docs/PHASE_7_REPORT.md`](docs/PHASE_7_REPORT.md).
