@@ -16,6 +16,14 @@
   with per-run stats and `(source, external_id)` dedup, a public
   search/filter/paginate/sort API, a new Alembic migration + indexes, and a
   `python -m app.cli seed-jobs` command. 104 backend tests pass.
+- **Phase 2 — Matching Engine** ✅ Complete. See `docs/PHASE_2_REPORT.md`.
+  Deterministic, explainable resume↔job matching: a pure calculation engine
+  (`app/services/matching_engine.py`) with skill/qualification/experience/
+  overall scores, matched/missing item lists, an explicit
+  unknown-vs-missing policy (never returns misleading 100s), weight-transparent
+  overall scoring (50/30/20), and a deterministic summary generator. Wired to
+  `GET /api/jobs/{id}/match` (auth-required, uses caller's own resume, 404 on
+  missing job/resume). No schema change and no AI. 156 backend tests pass.
 
 ## Completed (historical foundation phases)
 - **Authentication** ✅ Real registration/login flows, JWT issuance and
@@ -35,15 +43,13 @@
   documents, and replace-on-reupload behavior.
 
 ## Planned
-- **Phase 2 — Matching Engine**: Expose Skill Match % and Qualification Match %
-  for jobs against a user's resume, as a scored counterpart to the Phase 1 job
-  catalog (reuse `matching_service`; upgrade `JobMatchOut`, which is currently
-  removed from the API surface).
 - **Phase 3 — AI Resume Analysis**: Connect an LLM provider for deeper resume
   analysis beyond the deterministic structured extraction (keyword
-  suggestions, tailored summaries).
+  suggestions, tailored summaries), and optionally enrich the Phase 2
+  deterministic matching (synonym/degree-level semantics).
 - **Phase 4 — Jobs Frontend**: Wire the public and dashboard jobs pages to
-  `GET /api/jobs` (search, filters, pagination, detail, apply).
+  `GET /api/jobs` (search, filters, pagination, detail, apply) and present
+  match scores (`GET /api/jobs/{id}/match`) with the empty-resume message.
 - **Phase 5 — Saved Jobs & Applications UI**: Wire job saving (`SavedJob` +
   `POST /jobs/{id}/save`) and the applications flow end-to-end, plus any new
   backend work needed.

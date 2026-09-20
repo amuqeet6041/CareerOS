@@ -4,13 +4,15 @@ A career platform that reads your resume, extracts structured information
 (skills, education, experience, certifications), and will later match you to
 real job opportunities with Skill Match % and Qualification Match % scores.
 
-> **Status:** Phase 0 (foundation/migrations/tests) and **Phase 1 (core job
-> system)** are complete: the app boots, registers/logs in, uploads and parses
-> resumes, ingests a database-backed job catalog (search/filter/paginate API),
-> and has a passing test suite. AI resume analysis, real external job
-> providers, matching, and the jobs/saved-jobs UIs are **not implemented yet**
-> — see [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md) and
-> [`docs/PHASE_1_REPORT.md`](docs/PHASE_1_REPORT.md).
+> **Status:** Phase 0 (foundation/migrations/tests), **Phase 1 (core job
+> system)**, and **Phase 2 (deterministic matching engine)** are complete: the
+> app boots, registers/logs in, uploads and parses resumes, ingests a
+> database-backed job catalog (search/filter/paginate API), and matches a
+> user's resume against a job with explained skill/qualification/experience
+> scores. AI resume analysis, real external job providers, and the
+> jobs/saved-jobs UIs are **not implemented yet** — see
+> [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md) and
+> [`docs/PHASE_2_REPORT.md`](docs/PHASE_2_REPORT.md).
 
 ## Implemented
 - User registration and JWT-based login (HS256), protected routes
@@ -23,12 +25,14 @@ real job opportunities with Skill Match % and Qualification Match % scores.
   jobs (see "Seeding Demo Jobs" below)
 - Application tracking backend (create/list/update), per-user scoping
 - SQLAlchemy models + Alembic migrations for the full schema
-- Matching utilities (skill/qualification overlap) as reusable functions
+- **Matching engine (Phase 2)**: deterministic, explainable resume↔job
+  matching (`GET /api/jobs/{id}/match`) with skill/qualification/experience/
+  overall scores, matched/missing items, and weight-transparent summaries
 
 ## Not Yet Implemented (planned phases)
-- AI/LLM resume analysis
+- AI/LLM resume analysis (planned Phase 3)
 - Live/external job provider integrations or scraping (demo provider only)
-- Advanced matching & match-score APIs
+- AI-assisted/semantic matching (current engine is deterministic)
 - Jobs, saved-jobs, and applications frontend UI
 - Career insights / dashboard analytics
 - Email, password reset, OAuth
@@ -149,5 +153,6 @@ the expected schema (including the `job_skills`/`job_qualifications` tables).
 
 ## Documentation
 See [`docs/`](docs/) for architecture, schema, API, user-flow, and the phased
-development roadmap. Phase reports: [`docs/PHASE_0_REPORT.md`](docs/PHASE_0_REPORT.md)
-and [`docs/PHASE_1_REPORT.md`](docs/PHASE_1_REPORT.md).
+development roadmap. Phase reports: [`docs/PHASE_0_REPORT.md`](docs/PHASE_0_REPORT.md),
+[`docs/PHASE_1_REPORT.md`](docs/PHASE_1_REPORT.md), and
+[`docs/PHASE_2_REPORT.md`](docs/PHASE_2_REPORT.md).

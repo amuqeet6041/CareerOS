@@ -8,11 +8,15 @@ from app.core.database import get_db
 from app.models.job import Job
 from app.models.user import User
 from app.schemas.job import JobListResponse, JobResponse
+from app.schemas.matching import JobMatchResponse
 from app.services.job_search import (
     MAX_PAGE_SIZE,
     SORT_OPTIONS,
     search_jobs,
 )
+from app.services.matching_engine import COMPONENT_WEIGHTS_PERCENT
+from app.services.matching_service import match_resume_to_job
+from app.services.resume_service import get_resume_for_user
 from app.utils.job_fields import (
     EMPLOYMENT_TYPES,
     WORK_MODES,
@@ -93,6 +97,54 @@ def get_job(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return job
+
+
+@router.get("/{job_id}/match", response_model=JobMatchResponse)
+def get_job_match(
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Deterministic match of the authenticated user's resume against a job.
+
+    Authentication is required and the match always uses the caller's OWN
+    resume (never a client-supplied user id). Returns 404 if the job does not
+    exist or if the user has no uploaded resume.
+    """
+    job = (
+        db.query(Job)
+        .options(selectinload(Job.skills), selectinload(Job.qualifications))
+        .filter(Job.id == job_id)
+        .first()
+    )
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    resume = get_resume_for_user(db, current_user.id)
+    if resume is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No resume uploaded yet. Upload a resume before requesting a match.",
+        )
+
+    result = match_resume_to_job(resume, job)
+    return JobMatchResponse(
+        job_id=job.id,
+        skill_match_percentage=result.skill_match_percentage,
+        qualification_match_percentage=result.qualification_match_percentage,
+        experience_match_percentage=result.experience_match_percentage,
+        overall_match_percentage=result.overall_match_percentage,
+        matched_skills=result.matched_skills,
+        missing_skills=result.missing_skills,
+        matched_qualifications=result.matched_qualifications,
+        missing_qualifications=result.missing_qualifications,
+        experience_status=result.experience_status,
+        candidate_experience_years=result.candidate_experience_years,
+        minimum_required_years=result.minimum_required_years,
+        maximum_required_years=result.maximum_required_years,
+        component_weights=COMPONENT_WEIGHTS_PERCENT,
+        summary=result.summary,
+    )
 
 
 @router.post("/{job_id}/save")

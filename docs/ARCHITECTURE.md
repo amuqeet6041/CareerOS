@@ -43,8 +43,6 @@
   The schema source of truth is the SQLAlchemy models; `alembic upgrade head`
   (run from `backend/`) applies the current migration chain. Alembic resolves
   `DATABASE_URL` from the same configuration as the application.
-- Matching utilities are laid out here but match scores are not exposed to the
-  job API yet (Phase 2).
 
 ### Job Ingestion Pipeline
 Jobs flow from providers into the database through a normalized pipeline:
@@ -92,6 +90,104 @@ future internal schedulers. Public `GET /api/jobs` remains read-only.
   provider-agnostic. No provider is hard-coded; configure `LLM_API_KEY` and
   implement the actual call once a provider is chosen. **Not yet implemented** —
   no AI calls are made in this phase.
+
+## Matching Engine (Phase 2)
+
+### Matching flow
+```
+Stored resume (user)                    Job listing (public)
+        │                                    │
+        ▼                                    ▼
+build_candidate_profile()      skill_name / qualification (display)
+(matching_service.py)          minimum/maximum_experience_years
+        │
+        ▼
+Normalized CandidateProfile ─────► app/services/matching_engine.py
+                                     (pure, deterministic, no DB, no AI)
+        │
+        ▼
+ Skill Match % │ Qualification Match % │ Experience Match % │ Overall Match %
+        │
+        ▼
+ Summary (deterministic rule buckets + missing items)
+        │
+        ▼
+GET /api/jobs/{job_id}/match  (authenticated, uses caller's own resume)
+```
+
+### Skill normalization
+`normalize_skill`/`normalize_qualification` (reused from
+`app/utils/job_fields.py`) lowercase, `strip()`, and collapse inner whitespace:
+`" Python "` → `"python"`, `"Power BI"` → `"power bi"`. No synonym/thesaurus
+dictionary is used, so `"B.Sc"` and `"Bachelor of Science"` are different
+qualifications.
+
+### Skill formula
+```
+Skill Match % = matched required skills / total required skills × 100
+```
+Matching is done on normalized keys, is case/whitespace-insensitive, and
+deduplicates both sides. `matched_skills`/`missing_skills` report the job's
+display names.
+
+### Qualification formula
+```
+Qualification Match % = matched required qualifications / total required qualifications × 100
+```
+The candidate's qualification tokens are derived **only from stored resume
+data**: each education entry contributes its `degree`, its `field_of_study`,
+and (when both exist) `"{degree} in {field_of_study}"`; each certification
+contributes its name. Nothing is invented.
+
+### Experience logic
+Uses the job's `minimum_experience_years`/`maximum_experience_years` against
+the candidate's experience years:
+
+- Job has neither min nor max → `no_requirement` (unknown).
+- Candidate years unknown → `unknown` (never assumed to be zero).
+- `min <= candidate <= max` → 100%, `meets_requirement`.
+- Below min → `candidate / min × 100` (min > 0), `below_minimum`.
+- Above max → `max / candidate × 100`, `above_maximum`.
+
+The current resume schema does not store employment dates, so Phase 2 returns
+candidate experience years as unknown; the rules above power unit tests and
+become live when the resume model captures durations.
+
+### Overall score weights
+```
+Overall Match % = skill×0.50 + qualification×0.30 + experience×0.20
+```
+Constants live at the top of `matching_engine.py` and the nominal weights
+(`{"skill": 50, "qualification": 30, "experience": 20}`) are returned in the
+API response (`component_weights`) so scores are transparent.
+
+### Unknown / missing-data policy
+- A component is **`null` (unknown)** only when the **job has no requirement**
+  for it (no required skills, no required qualifications, no experience
+  range). `null` never means "100 because the job asked for nothing".
+- When the candidate has data that simply does not match (e.g. skills that
+  match none of the required skills), the score is a **real 0** — that is
+  evidence-based, not missing information.
+- If the user has **no resume**, the endpoint returns 404 (no fabricated
+  scores). If a resume exists but yields no parsed data, components are
+  computed honestly (0 or unknown) rather than assumed.
+- Missing components are excluded from the overall score and their weight is
+  redistributed over the known components; overall is `null` when nothing is
+  known. This never produces misleading certainty.
+
+### Why scores are calculated on demand
+Match scores are **not persisted**. There is no `match_scores`,
+`job_matches`, or recommendation table — the engine is stateless and computes
+a result per request (one job query with eager-loaded children + one resume
+query). This keeps scores always consistent with the latest resume/job data
+and avoids a schema change. Persisting/recommending scores belongs to a later
+phase.
+
+### Why AI is not involved yet
+The Phase 2 engine is deliberately deterministic and explainable so results
+are reproducible and testable. AI-based resume intelligence (deeper parsing,
+synonym/degree-level semantics, tailored summaries) is planned for Phase 3 and
+will layer on top of — not replace — this deterministic core.
 
 ### Job Data
 - The `JobProvider` abstraction (`app/services/providers/`) allows new job API
