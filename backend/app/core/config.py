@@ -1,4 +1,4 @@
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Fallback used ONLY in development (ENVIRONMENT != "production") when the
@@ -31,6 +31,17 @@ class Settings(BaseSettings):
 
     MAX_RESUME_SIZE_MB: int = 5
 
+    # AI resume intelligence. Empty AI_PROVIDER disables AI analysis entirely
+    # (resumes are parsed deterministically). "openai" talks to any
+    # OpenAI-compatible /chat/completions endpoint via httpx; "mock" is for
+    # development/tests and is refused in production.
+    AI_PROVIDER: str = ""
+    AI_API_KEY: str = ""
+    AI_MODEL: str = "gpt-4o-mini"
+    AI_BASE_URL: str = "https://api.openai.com/v1"
+    AI_MAX_RESUME_CHARS: int = 30000
+    AI_TIMEOUT_SECONDS: int = 30
+
     ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -47,6 +58,28 @@ class Settings(BaseSettings):
                 )
             return DEV_ONLY_JWT_SECRET
         return value.strip()
+
+    @model_validator(mode="after")
+    def _validate_ai_config(self) -> "Settings":
+        env = (self.ENVIRONMENT or "development").strip().lower()
+        provider = (self.AI_PROVIDER or "").strip().lower()
+        if provider:
+            if provider == "mock" and env == "production":
+                raise ValueError(
+                    "AI_PROVIDER=mock is only for development and tests."
+                )
+            if provider not in {"openai"}:
+                raise ValueError(
+                    f"Unsupported AI_PROVIDER {provider!r}; expected one of: "
+                    "{'openai'}, or leave empty to disable AI analysis."
+                )
+            if not (self.AI_API_KEY or "").strip():
+                if env == "production":
+                    raise ValueError(
+                        "AI_API_KEY must be set when AI_PROVIDER is configured "
+                        "and ENVIRONMENT=production."
+                    )
+        return self
 
 
 settings = Settings()

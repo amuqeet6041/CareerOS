@@ -85,11 +85,56 @@ There is **no HTTP endpoint** for ingesting jobs. Ingestion runs through the
 admin/CLI command `python -m app.cli seed-jobs` (from `backend/`) or
 future internal schedulers. Public `GET /api/jobs` remains read-only.
 
-### AI Integration
-- The AI service module (`app/services/ai_service.py`) is intentionally
-  provider-agnostic. No provider is hard-coded; configure `LLM_API_KEY` and
-  implement the actual call once a provider is chosen. **Not yet implemented** —
-  no AI calls are made in this phase.
+### AI Resume Intelligence (Phase 3)
+The AI layer (`app/services/ai/`) extracts **structured information only** from
+resume text. It never computes match scores, never recommends, and never
+scrapes or invents data.
+
+```
+Raw resume text (from the deterministic parser)
+        │
+        ▼
+app/services/ai/pipeline.py   run_resume_analysis(raw_text) -> (structured | None, status)
+        │
+        ▼
+provider.get_ai_provider() ──► None (AI disabled)            → status "parsed"
+        │
+        ├──► OpenAICompatibleProvider (httpx → /chat/completions)
+        │      · strict JSON-only prompt (app/services/ai/prompts.py)
+        │      · you get what's in the text; no scoring/guessing instructions
+        ├──► MockAIProvider (development/tests only; refused in production)
+        ▼
+app/services/ai/schemas.py   AIResumeExtraction (Pydantic validation)
+        │
+        ▼
+structured_to_persist()      dedupe skills by normalized key (same as matching),
+                             compute deterministic experience years, persist shape
+        ▼
+resume_service.save_resume(..., analysis_status, structured)
+```
+
+- **Provider abstraction** (`base.py`): `AIProvider` interface plus typed
+  errors — `AIConfigurationError`, `AIRequestError` (timeout / unavailable /
+  invalid key / rate limit), `AIOutputError` (unparseable body). Responses and
+  resume text are never logged; only the error *category* is.
+- **Factory** (`provider.py`): `get_ai_provider()` returns `None` when
+  `AI_PROVIDER` is empty (fully deterministic), the configured provider, or
+  raises `AIConfigurationError`. `Settings` refuses `AI_PROVIDER` in production
+  without `AI_API_KEY` and disallows `mock` in production.
+- **Validation** (`schemas.py`): dates are normalized to strict `YYYY-MM`
+  (`YYYY-MM-DD`/`MM/YYYY` accepted and truncated); anything unrecognized stays
+  `None` so downstream code treats it as *missing*, never guesses. Education
+  `institution` became nullable so entries without an institution still persist.
+- **Fallback guarantee**: every AI failure mode (config, provider, timeout,
+  non-JSON, schema-invalid, enrichment) degrades to the deterministic parse
+  with `analysis_status = "ai_failed"`. Uploads never break because of AI.
+  `POST /api/resume/analyze` retries AI on the stored `raw_text` and, if it
+  fails again, preserves the existing data untouched.
+- **Statuses**: `parsed` (deterministic only), `ai_analyzed`, `ai_failed`.
+- **Privacy**: the prompt never includes job data (the model cannot tailor
+  answers to any employer). Resume text, prompts, and provider responses are
+  never logged. `LLM_API_KEY` reserved name remains but the active setting is
+  `AI_API_KEY`.
 
 ## Matching Engine (Phase 2)
 
@@ -149,9 +194,23 @@ the candidate's experience years:
 - Below min → `candidate / min × 100` (min > 0), `below_minimum`.
 - Above max → `max / candidate × 100`, `above_maximum`.
 
-The current resume schema does not store employment dates, so Phase 2 returns
-candidate experience years as unknown; the rules above power unit tests and
-become live when the resume model captures durations.
+Since Phase 3, candidate experience years come from the resume's deterministic
+`total_experience_years` (set by the AI pipeline from validated `YYYY-MM`
+employment dates via `app/services/experience_duration.py`). It stays `None`
+(unknown) whenever any date is missing, malformed, or inconsistent — never
+assumed to be zero.
+
+### Experience-duration policy (`app/services/experience_duration.py`)
+- Each job counts its start month inclusive and end month exclusive:
+  `2024-01 → 2025-01` is exactly 12 months (1.0 year).
+- `currently_employed` roles run through the current month; end dates in the
+  future are clamped to the current month.
+- Overlapping and adjacent jobs are merged so shared months are not double
+  counted.
+- If ANY job's interval is unreliable (missing/malformed start, missing end
+  that is not "current", end before start, start in the future), the total is
+  `None` — unknown, not zero. No jobs at all is also `None`.
+- Years = merged months / 12, rounded to 2 decimals.
 
 ### Overall score weights
 ```
@@ -183,11 +242,13 @@ query). This keeps scores always consistent with the latest resume/job data
 and avoids a schema change. Persisting/recommending scores belongs to a later
 phase.
 
-### Why AI is not involved yet
-The Phase 2 engine is deliberately deterministic and explainable so results
-are reproducible and testable. AI-based resume intelligence (deeper parsing,
-synonym/degree-level semantics, tailored summaries) is planned for Phase 3 and
-will layer on top of — not replace — this deterministic core.
+### Why AI never computes scores
+The Phase 2 engine is deliberately deterministic and explainable so results are
+reproducible and testable. Phase 3 AI resume intelligence (structured
+skills/education/certifications/experience with dates) layers on top of — not
+replaces — this deterministic core: AI supplies candidate *data*, and the
+engine turns that data into scores using the same fixed rules. No AI provider
+is ever asked for a percentage, a match reason, or a recommendation.
 
 ### Job Data
 - The `JobProvider` abstraction (`app/services/providers/`) allows new job API

@@ -93,10 +93,10 @@ def build_candidate_profile(resume: Resume) -> CandidateProfile:
         if cert.name:
             qualifications.append(cert.name)
 
-    # The current resume schema stores company/title/description but no
-    # employment dates, so candidate experience years cannot be derived
-    # deterministically. It is intentionally left unknown rather than assumed 0.
-    experience_years: float | None = None
+    # Candidate experience now comes from the resume's deterministic total,
+    # computed by the AI pipeline from validated employment dates. It stays
+    # None (unknown) when dates are missing — never assumed to be 0.
+    experience_years: float | None = resume.total_experience_years
 
     return CandidateProfile(
         skills=[s.name for s in resume.skills if s.name],

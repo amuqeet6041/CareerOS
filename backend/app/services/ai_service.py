@@ -1,30 +1,25 @@
 """
-AI service module.
+Deprecated. Superseded in Phase 3 by the provider-agnostic AI resume
+intelligence package in :mod:`app.services.ai` (``base.py``, ``provider.py``,
+``pipeline.py``).
 
-Designed as a provider-agnostic interface for LLM-based resume analysis.
-No provider is hard-coded here; configure LLM_API_KEY and implement the
-provider call in `_call_llm` when ready.
-
-IMPORTANT: This module must never return fabricated data disguised as a
-real AI response. Until implemented, functions raise NotImplementedError.
+This module exists only so legacy imports keep working. New code must use
+:func:`app.services.ai.pipeline.run_resume_analysis` instead, which is wired
+into ``POST /api/resume/upload`` and ``POST /api/resume/analyze``.
 """
 
-from app.core.config import settings
+from app.core.config import settings  # noqa: F401
 
 
 def _call_llm(prompt: str) -> str:
-    """
-    Placeholder for the actual LLM API call.
-    Use `settings.LLM_API_KEY` and whichever provider is chosen later.
-    """
-    raise NotImplementedError("LLM provider integration is not configured yet.")
+    """Legacy placeholder, superseded by app.services.ai.provider."""
+    raise NotImplementedError(
+        "LLM provider integration moved to app.services.ai.provider."
+    )
 
 
 def analyze_resume_text(raw_text: str) -> dict:
-    """
-    Analyze resume text and return a structured profile:
-    { skills: [...], education: [...], experience: [...], certifications: [...] }
-
-    Placeholder: replace with a real prompt + LLM call + response parsing.
-    """
-    raise NotImplementedError("Resume analysis via AI is not implemented yet.")
+    """Legacy placeholder, superseded by app.services.ai.pipeline."""
+    raise NotImplementedError(
+        "Resume analysis via AI moved to app.services.ai.pipeline."
+    )

@@ -25,6 +25,20 @@
   `GET /api/jobs/{id}/match` (auth-required, uses caller's own resume, 404 on
   missing job/resume). No schema change and no AI. 156 backend tests pass.
 
+- **Phase 3 — AI Resume Intelligence** ✅ Complete. See
+  `docs/PHASE_3_REPORT.md`. Provider-agnostic AI structured extraction
+  (`app/services/ai/`: base provider interface + typed errors, httpx-based
+  OpenAI-compatible provider, mock provider, JSON-only prompt, Pydantic
+  validation, and a resilient pipeline) layered on the deterministic parser.
+  Uploads now enrich skills/education/certifications/dated experience; a strict
+  deterministic employment-duration calculation
+  (`app/services/experience_duration.py`) plus schema columns power
+  experience scoring in the Phase 2 engine; a retry endpoint
+  (`POST /api/resume/analyze`); graceful fallback on every AI failure mode
+  (`ai_failed` never breaks uploads); a reversible Alembic migration; and
+  privacy by construction (no resume text/prompts/responses/keys logged).
+  212 backend tests pass.
+
 ## Completed (historical foundation phases)
 - **Authentication** ✅ Real registration/login flows, JWT issuance and
   validation via a shared `get_current_user` dependency (`app/api/deps.py`),
@@ -43,10 +57,6 @@
   documents, and replace-on-reupload behavior.
 
 ## Planned
-- **Phase 3 — AI Resume Analysis**: Connect an LLM provider for deeper resume
-  analysis beyond the deterministic structured extraction (keyword
-  suggestions, tailored summaries), and optionally enrich the Phase 2
-  deterministic matching (synonym/degree-level semantics).
 - **Phase 4 — Jobs Frontend**: Wire the public and dashboard jobs pages to
   `GET /api/jobs` (search, filters, pagination, detail, apply) and present
   match scores (`GET /api/jobs/{id}/match`) with the empty-resume message.
