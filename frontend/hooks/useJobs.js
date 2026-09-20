@@ -3,9 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { getJobs } from "@/services/jobService";
 
-// Placeholder hook for fetching/filtering jobs.
+// Hook for fetching/filtering jobs against the paginated /api/jobs contract:
+// { items, total, page, page_size, total_pages }.
 export function useJobs(initialFilters = {}) {
   const [jobs, setJobs] = useState([]);
+  const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState(initialFilters);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -15,7 +17,9 @@ export function useJobs(initialFilters = {}) {
     setError(null);
     try {
       const data = await getJobs(filters);
-      setJobs(data);
+      const items = Array.isArray(data) ? data : data?.items ?? [];
+      setJobs(items);
+      setTotal(Array.isArray(data) ? items.length : data?.total ?? items.length);
     } catch (err) {
       setError(err.message || "Failed to load jobs");
     } finally {
@@ -27,5 +31,5 @@ export function useJobs(initialFilters = {}) {
     fetchJobs();
   }, [fetchJobs]);
 
-  return { jobs, filters, setFilters, loading, error, refetch: fetchJobs };
+  return { jobs, total, filters, setFilters, loading, error, refetch: fetchJobs };
 }

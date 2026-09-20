@@ -1,6 +1,8 @@
 import { apiFetch } from "@/lib/api";
 
-// Placeholder job service. Connect to backend /api/jobs routes.
+// Connects to the backend /api/jobs routes. The backend returns a paginated
+// envelope for lists; detail/save return single records. Phase 4 wires the
+// jobs UI to this service.
 export async function getJobs(filters = {}) {
   const params = new URLSearchParams(filters).toString();
   return apiFetch(`/api/jobs${params ? `?${params}` : ""}`);

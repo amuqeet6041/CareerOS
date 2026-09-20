@@ -17,6 +17,8 @@ EXPECTED_TABLES = {
     "experience",
     "certifications",
     "jobs",
+    "job_skills",
+    "job_qualifications",
     "saved_jobs",
     "applications",
     "user_preferences",

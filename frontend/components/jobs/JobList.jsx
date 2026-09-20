@@ -6,7 +6,7 @@ export default function JobList({ jobs = [] }) {
     return (
       <EmptyState
         title="No jobs to show"
-        description="Once job sources are connected, matching jobs will appear here."
+        description="Try adjusting your filters. Run `python -m app.cli seed-jobs` on the backend to load the demo jobs."
       />
     );
   }

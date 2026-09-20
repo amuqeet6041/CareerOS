@@ -4,26 +4,32 @@ A career platform that reads your resume, extracts structured information
 (skills, education, experience, certifications), and will later match you to
 real job opportunities with Skill Match % and Qualification Match % scores.
 
-> **Status:** Foundation/Phase 0 is complete: the app boots, registers/logs in,
-> uploads and parses resumes, exposes a jobs API (placeholder provider), has
-> database migrations, and a passing test suite. AI resume analysis, real job
-> providers, and matching UIs are **not implemented yet** — see
-> [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md).
+> **Status:** Phase 0 (foundation/migrations/tests) and **Phase 1 (core job
+> system)** are complete: the app boots, registers/logs in, uploads and parses
+> resumes, ingests a database-backed job catalog (search/filter/paginate API),
+> and has a passing test suite. AI resume analysis, real external job
+> providers, matching, and the jobs/saved-jobs UIs are **not implemented yet**
+> — see [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md) and
+> [`docs/PHASE_1_REPORT.md`](docs/PHASE_1_REPORT.md).
 
 ## Implemented
 - User registration and JWT-based login (HS256), protected routes
 - Resume upload with structured extraction (placeholder parse/extract logic)
-- Placeholder job browse/filter API (`/api/jobs`) — returns `[]` until a real
-  job provider is integrated
+- **Core job system (Phase 1)**: database-backed jobs with provider
+  abstraction, normalization, idempotent ingestion/upsert (dedup by
+  `(source, external_id)`), demo job provider, migration, and a public
+  browse/search/filter/paginate/sort API
+- **Demo job seeding**: `python -m app.cli seed-jobs` upserts 10 fictional
+  jobs (see "Seeding Demo Jobs" below)
 - Application tracking backend (create/list/update), per-user scoping
 - SQLAlchemy models + Alembic migrations for the full schema
 - Matching utilities (skill/qualification overlap) as reusable functions
 
 ## Not Yet Implemented (planned phases)
 - AI/LLM resume analysis
-- Live job provider integrations / scraping / crawling
+- Live/external job provider integrations or scraping (demo provider only)
 - Advanced matching & match-score APIs
-- Saved-jobs and applications frontend UI
+- Jobs, saved-jobs, and applications frontend UI
 - Career insights / dashboard analytics
 - Email, password reset, OAuth
 
@@ -117,6 +123,21 @@ App at http://localhost:3000
 ### Health Check
 `GET http://localhost:8000/api/health` → `{"status": "ok", ...}`
 
+## Seeding Demo Jobs
+The job catalog starts empty. To load the bundled fictional demo jobs (10
+postings across fictitious companies — clearly-marked demo apply links, no
+real companies or external APIs), run from `backend/`:
+
+```bash
+cd backend
+set DATABASE_URL=sqlite:///./careeros.db   # or your Postgres URL; also read from backend/.env
+venv\Scripts\python.exe -m app.cli seed-jobs
+```
+
+Seeding is idempotent — running it again updates or skips instead of
+duplicating (dedup key: `source` + `external_id`). Report:
+`fetched=10 inserted=10 updated=0 skipped=0 failed=0`.
+
 ## Running Tests
 ```bash
 cd backend
@@ -124,9 +145,9 @@ venv\Scripts\python.exe -m pytest -q
 ```
 Tests use an in-memory SQLite database — no Postgres required. They also run
 `alembic upgrade head` against a temp SQLite DB to verify migrations produce
-the expected schema.
+the expected schema (including the `job_skills`/`job_qualifications` tables).
 
 ## Documentation
 See [`docs/`](docs/) for architecture, schema, API, user-flow, and the phased
-development roadmap. The Phase 0 report is at
-[`docs/PHASE_0_REPORT.md`](docs/PHASE_0_REPORT.md).
+development roadmap. Phase reports: [`docs/PHASE_0_REPORT.md`](docs/PHASE_0_REPORT.md)
+and [`docs/PHASE_1_REPORT.md`](docs/PHASE_1_REPORT.md).

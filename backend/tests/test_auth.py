@@ -308,7 +308,18 @@ def test_resume_upload_requires_auth():
 
 
 def test_jobs_browse_is_public():
-    # Job discovery should not require auth; the placeholder provider returns [].
+    # Job discovery must not require auth. The listing is paginated; the page
+    # returned should always be internally consistent regardless of how many
+    # jobs earlier tests seeded (the old `/api/jobs` returned a bare []).
     response = client.get("/api/jobs")
     assert response.status_code == 200
-    assert response.json() == []
+    body = response.json()
+    assert body["page"] == 1
+    assert body["page_size"] == 20
+    assert isinstance(body["items"], list)
+    assert body["total"] >= 0
+    assert body["total_pages"] == (body["total"] + body["page_size"] - 1) // body["page_size"]
+    if body["items"]:
+        first = body["items"][0]
+        assert first["title"]
+        assert first["company"]
