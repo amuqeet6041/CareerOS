@@ -1,0 +1,127 @@
+# ==========================================
+# CareerOS - Root Git Ignore
+# ==========================================
+
+# ------------------------------
+# Environment / Secrets
+# ------------------------------
+.env
+.env.*
+!.env.example
+
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# ------------------------------
+# Python
+# ------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+.venv/
+venv/
+env/
+ENV/
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+*.egg-info/
+dist/
+build/
+
+# ------------------------------
+# Local Databases
+# ------------------------------
+*.db
+*.sqlite
+*.sqlite3
+
+careeros.db
+backend/careeros.db
+
+# ------------------------------
+# Node / Next.js
+# ------------------------------
+node_modules/
+.next/
+out/
+.turbo/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ------------------------------
+# IDE / Editors
+# ------------------------------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+.idea/
+*.swp
+*.swo
+
+# ------------------------------
+# OS Files
+# ------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ------------------------------
+# Logs
+# ------------------------------
+*.log
+logs/
+
+# ------------------------------
+# Coverage
+# ------------------------------
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# ------------------------------
+# Temporary Files
+# ------------------------------
+*.tmp
+*.temp
+*.bak
+*.old
+
+# ------------------------------
+# Uploaded / Generated Files
+# ------------------------------
+uploads/
+backend/uploads/
+frontend/uploads/
+
+# ------------------------------
+# Generated Resume Files
+# ------------------------------
+*.pdf
+*.docx
+
+# ------------------------------
+# Build / Cache
+# ------------------------------
+.cache/
+.parcel-cache/
+
+# ------------------------------
+# Local Secrets / Certificates
+# ------------------------------
+*.pem
+*.key
+*.crt

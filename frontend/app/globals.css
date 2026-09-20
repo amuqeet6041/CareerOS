@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-navy: #0B1F3A;
+  --color-accent: #2563EB;
+  --color-surface: #F8FAFC;
+  --color-border: #E2E8F0;
+  --color-success: #16A34A;
+}
+
+html,
+body {
+  background-color: var(--color-surface);
+  color: var(--color-navy);
+}
