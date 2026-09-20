@@ -5,9 +5,10 @@ Business logic for creating, listing, and updating job applications, scoped
 to an authenticated user.
 """
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.models.application import Application
+from app.models.job import Job
 
 
 def create_application(db: Session, user_id: int, job_id: int) -> Application:
@@ -21,8 +22,12 @@ def create_application(db: Session, user_id: int, job_id: int) -> Application:
 def list_applications(db: Session, user_id: int) -> list[Application]:
     return (
         db.query(Application)
+        .options(
+            selectinload(Application.job).selectinload(Job.skills),
+            selectinload(Application.job).selectinload(Job.qualifications),
+        )
         .filter(Application.user_id == user_id)
-        .order_by(Application.applied_at.desc())
+        .order_by(Application.applied_at.desc(), Application.id.desc())
         .all()
     )
 

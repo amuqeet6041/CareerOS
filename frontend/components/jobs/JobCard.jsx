@@ -1,6 +1,7 @@
 import Link from "next/link";
 import MatchPill from "./MatchPill";
-import ApplyButton from "./ApplyButton";
+import ApplyNowButton from "./ApplyNowButton";
+import SaveJobButton from "./SaveJobButton";
 import {
   formatSalary,
   formatDate,
@@ -12,8 +13,21 @@ import {
 // `match` is the per-job entry produced by useJobMatches: either a real
 // payload ({ status: "success", data: JobMatchResponse }) or a state marker
 // (no-resume / error), or null when matches aren't rendered for this view.
+// `saved`/`applied`/`authenticated`/`onToggleSave`/`onApplyTracked` are
+// supplied by the parent (JobsExplorer / Saved Jobs page) and drive the
+// save + apply-tracking controls.
 
-export default function JobCard({ job, match = null, matchLoading = false }) {
+export default function JobCard({
+  job,
+  match = null,
+  matchLoading = false,
+  saved = false,
+  applied = false,
+  saveDisabled = false,
+  authenticated = true,
+  onToggleSave = null,
+  onApplyTracked = null,
+}) {
   const salary = formatSalary(job.salary_min, job.salary_max, job.currency);
   const hasSalary = Boolean(job.salary_min || job.salary_max);
   const location = job.city || job.location;
@@ -65,7 +79,23 @@ export default function JobCard({ job, match = null, matchLoading = false }) {
         >
           View Job
         </Link>
-        <ApplyButton url={job.application_url} />
+        <ApplyNowButton
+          jobId={job.id}
+          jobTitle={job.title}
+          url={job.application_url}
+          authenticated={authenticated}
+          applied={applied}
+          onTracked={onApplyTracked}
+        />
+        <SaveJobButton
+          jobId={job.id}
+          jobTitle={job.title}
+          saved={saved}
+          authenticated={authenticated}
+          disabled={saveDisabled}
+          onToggle={onToggleSave}
+          className="ml-auto"
+        />
       </div>
     </article>
   );

@@ -4,18 +4,20 @@ A career platform that reads your resume, extracts structured information
 (skills, education, experience, certifications), and will later match you to
 real job opportunities with Skill Match % and Qualification Match % scores.
 
-> **Status:** Phases 0–4 complete: the app boots, registers/logs in, uploads
+> **Status:** Phases 0–5 complete: the app boots, registers/logs in, uploads
 > and parses resumes, ingests a database-backed job catalog
 > (search/filter/paginate API), matches a user's resume against a job with
 > explained skill/qualification/experience scores, (Phase 3) enriches resumes
 > with provider-agnostic AI-structured analysis (dated experience, AI skill
 > spelling, education/certification detail) that feeds — but never replaces —
-> the deterministic matching engine, and (Phase 4) ships a production jobs
+> the deterministic matching engine, (Phase 4) ships a production jobs
 > frontend (public browse + detail, dashboard matches with scoreboards,
-> search/filters/sort/pagination, URL-synced). Real external job providers and
-> the saved-jobs/applications UIs remain **not implemented yet** — see
+> search/filters/sort/pagination, URL-synced), and (Phase 5) wires real
+> persisted saved-jobs and application-tracking flows (save/unsave, Saved Jobs
+> and My Applications pages, tracked Apply that still opens the external
+> application). Real external job providers remain **not implemented yet** — see
 > [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md) and
-> [`docs/PHASE_4_REPORT.md`](docs/PHASE_4_REPORT.md).
+> [`docs/PHASE_5_REPORT.md`](docs/PHASE_5_REPORT.md).
 
 ## Implemented
 - User registration and JWT-based login (HS256), protected routes
@@ -43,12 +45,21 @@ real job opportunities with Skill Match % and Qualification Match % scores.
   state (back/forward + shareable links), skeleton/empty/error states, and
   match-score presentation (per-page on lists, full panel on detail) with
   Apply Now that navigates to the real application URL
+- **Saved jobs & applications (Phase 5)**: real persisted save/unsave
+  (`GET/POST/DELETE /api/jobs/{id}/save` flows, `GET /api/jobs/saved`) and
+  full application tracking using the existing `Application` model
+  (`GET/POST /api/applications`, `PATCH /api/applications/{id}`), with the job
+  embedded in every response; Saved Jobs and My Applications dashboard pages,
+  and save + applied-aware Apply controls on cards and the detail page
+  (tracking recorded for signed-in users before the external application
+  opens)
 
 ## Not Yet Implemented (planned phases)
 - Real/live external job provider integrations or scraping (demo provider only)
 - AI-assisted/semantic matching (AI extracts candidate *data* only; scoring
   remains the deterministic engine)
-- Saved-jobs and applications frontend UI (Phase 5; saving is not faked today)
+- Application status editing in the UI (backend PATCH exists) and server-side
+  match ordering for list ranking
 - Career insights / dashboard analytics
 - Email, password reset, OAuth
 
@@ -195,5 +206,6 @@ See [`docs/`](docs/) for architecture, schema, API, user-flow, and the phased
 development roadmap. Phase reports: [`docs/PHASE_0_REPORT.md`](docs/PHASE_0_REPORT.md),
 [`docs/PHASE_1_REPORT.md`](docs/PHASE_1_REPORT.md),
 [`docs/PHASE_2_REPORT.md`](docs/PHASE_2_REPORT.md),
-[`docs/PHASE_3_REPORT.md`](docs/PHASE_3_REPORT.md), and
-[`docs/PHASE_4_REPORT.md`](docs/PHASE_4_REPORT.md).
+[`docs/PHASE_3_REPORT.md`](docs/PHASE_3_REPORT.md),
+[`docs/PHASE_4_REPORT.md`](docs/PHASE_4_REPORT.md), and
+[`docs/PHASE_5_REPORT.md`](docs/PHASE_5_REPORT.md).

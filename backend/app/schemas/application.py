@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+from app.schemas.job import JobResponse
+
 
 class ApplicationCreate(BaseModel):
     job_id: int
@@ -11,6 +13,7 @@ class ApplicationOut(BaseModel):
     job_id: int
     status: str
     applied_at: datetime
+    job: JobResponse | None = None
 
     class Config:
         from_attributes = True

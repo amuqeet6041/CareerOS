@@ -47,6 +47,17 @@
   state handled (sign-in, missing resume, transient error, full score), and
   Apply Now that only navigates when an application URL exists. No fake data;
   no backend changes; 212 backend tests still pass and `next build` is green.
+- **Phase 5 — Saved Jobs & Applications** ✅ Complete. See
+  `docs/PHASE_5_REPORT.md`. Real persisted save/unsave flows backed by the
+  existing `SavedJob` model (`POST/DELETE /api/jobs/{id}/save`, new
+  `GET /api/jobs/saved` newest-first with the job embedded, 404/409 semantics)
+  and full application tracking using the existing `Application` model and
+  routes; `ApplicationOut` now embeds the job (eager-loaded, no N+1). The
+  Saved Jobs and My Applications dashboard pages are real, card lists and the
+  detail page carry save + applied-aware Apply controls (tracking recorded
+  before the external URL opens; unauthenticated users get sign-in links and
+  unchanged external navigation). 222 backend tests pass and `next build` is
+  green.
 
 ## Completed (historical foundation phases)
 - **Authentication** ✅ Real registration/login flows, JWT issuance and
@@ -66,11 +77,9 @@
   documents, and replace-on-reupload behavior.
 
 ## Planned
-- **Phase 5 — Saved Jobs & Applications UI**: Wire job saving (`SavedJob` +
-  `POST /jobs/{id}/save`) and the applications flow end-to-end, plus server-side
-  match ordering so lists can be ranked by score.
 - **Phase 6 — Dashboard & Insights**: Profile completion, recommendations, and
-  stats on the student dashboard.
+  stats on the student dashboard, plus server-side match ordering so jobs lists
+  can be ranked by score (the remaining Phase 5 sub-item).
 - **Phase 7 — Real Job Providers**: Integrate one or more approved external job
   sources behind the existing `JobProvider`/normalizer/ingestion pipeline, plus
   scheduled ingestion. Provider identity becomes config-driven

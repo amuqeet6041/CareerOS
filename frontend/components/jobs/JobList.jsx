@@ -11,6 +11,12 @@ export default function JobList({
   onRetry = null,
   matchMap = null,
   loadingMatchIds = [],
+  savedIds = null,
+  appliedIds = null,
+  saveDisabled = false,
+  authenticated = true,
+  onToggleSave = null,
+  onApplyTracked = null,
   emptyTitle = "No jobs found",
   emptyDescription = "Try adjusting your search or filters.",
   emptyAction = null,
@@ -63,6 +69,12 @@ export default function JobList({
           job={job}
           match={matchMap ? matchMap[job.id] ?? null : null}
           matchLoading={loadingMatchIds.includes(job.id)}
+          saved={savedIds ? savedIds.has(job.id) : false}
+          applied={appliedIds ? appliedIds.has(job.id) : false}
+          saveDisabled={saveDisabled}
+          authenticated={authenticated}
+          onToggleSave={onToggleSave}
+          onApplyTracked={onApplyTracked}
         />
       ))}
     </div>

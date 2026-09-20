@@ -64,3 +64,19 @@ class JobListResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
+
+
+class SavedJobOut(BaseModel):
+    """A saved-job record for the authenticated user, with embedded job.
+
+    ``job`` is populated by the backend (eager-loaded) so the frontend never
+    needs to make one detail request per saved row.
+    """
+
+    id: int
+    job_id: int
+    saved_at: datetime
+    job: JobResponse | None = None
+
+    class Config:
+        from_attributes = True

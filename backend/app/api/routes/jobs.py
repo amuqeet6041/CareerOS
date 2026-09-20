@@ -7,12 +7,18 @@ from app.api.deps import get_current_user
 from app.core.database import get_db
 from app.models.job import Job
 from app.models.user import User
-from app.schemas.job import JobListResponse, JobResponse
+from app.schemas.job import JobListResponse, JobResponse, SavedJobOut
 from app.schemas.matching import JobMatchResponse
 from app.services.job_search import (
     MAX_PAGE_SIZE,
     SORT_OPTIONS,
     search_jobs,
+)
+from app.services.saved_job_service import (
+    create_saved_job,
+    delete_saved_job,
+    get_saved_job,
+    list_saved_jobs,
 )
 from app.services.matching_engine import COMPONENT_WEIGHTS_PERCENT
 from app.services.matching_service import match_resume_to_job
@@ -83,6 +89,19 @@ def list_jobs(
     )
 
 
+@router.get("/saved", response_model=list[SavedJobOut])
+def list_saved_jobs_route(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """List the authenticated user's saved jobs, newest first.
+
+    Must be declared before ``/{job_id}`` so the ``/saved`` literal segment
+    wins over the integer path converter.
+    """
+    return list_saved_jobs(db, current_user.id)
+
+
 @router.get("/{job_id}", response_model=JobResponse)
 def get_job(
     job_id: int,
@@ -147,9 +166,30 @@ def get_job_match(
     )
 
 
-@router.post("/{job_id}/save")
-def save_job(job_id: int, current_user: User = Depends(get_current_user)):
-    # Placeholder: persists to SavedJob once the saved-jobs flow is wired up
-    # for real (Phase 5). Endpoint exists now so the auth requirement is
-    # exercised and documented.
-    return {"message": f"Job {job_id} saved for user {current_user.id} (placeholder)"}
+@router.post("/{job_id}/save", response_model=SavedJobOut, status_code=201)
+def save_job(
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Persist a saved-job record for the authenticated user."""
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if get_saved_job(db, current_user.id, job_id):
+        raise HTTPException(status_code=409, detail="Job already saved")
+    return create_saved_job(db, current_user.id, job_id)
+
+
+@router.delete("/{job_id}/save", status_code=204)
+def unsave_job(
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Remove a saved-job record for the authenticated user (idempotent)."""
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    delete_saved_job(db, current_user.id, job_id)
+    return None

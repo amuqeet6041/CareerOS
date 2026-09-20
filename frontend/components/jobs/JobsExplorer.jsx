@@ -8,6 +8,8 @@ import { SlidersHorizontal } from "lucide-react";
 import Modal from "@/components/shared/Modal";
 import { useJobs } from "@/hooks/useJobs";
 import { useJobMatches } from "@/hooks/useJobMatches";
+import { useSavedJobs } from "@/hooks/useSavedJobs";
+import { useApplications } from "@/hooks/useApplications";
 import { useAuth } from "@/hooks/useAuth";
 import { queryToFilters, filtersToQuery, serializeFilters } from "@/lib/jobQuery";
 import { SORT_OPTIONS } from "@/lib/constants";
@@ -53,6 +55,14 @@ export default function JobsExplorer({ variant = "public" }) {
   } = useJobs({ initialFilters: externalFilters, onFiltersChange: syncUrl });
 
   const { matchMap, loadingIds } = useJobMatches(jobs, {
+    enabled: variant === "dashboard" && isAuthenticated && !authLoading,
+  });
+
+  const saved = useSavedJobs({
+    enabled: variant === "dashboard" && isAuthenticated && !authLoading,
+  });
+
+  const applications = useApplications({
     enabled: variant === "dashboard" && isAuthenticated && !authLoading,
   });
 
@@ -176,6 +186,12 @@ export default function JobsExplorer({ variant = "public" }) {
               onRetry={refetch}
               matchMap={variant === "dashboard" ? matchMap : null}
               loadingMatchIds={variant === "dashboard" ? loadingIds : []}
+              savedIds={variant === "dashboard" ? saved.savedIds : null}
+              appliedIds={variant === "dashboard" ? applications.appliedIds : null}
+              saveDisabled={variant === "dashboard" && saved.loading}
+              authenticated={isAuthenticated && !authLoading}
+              onToggleSave={saved.toggle}
+              onApplyTracked={applications.markApplied}
               emptyAction={
                 hasActiveFilters ? (
                   <button

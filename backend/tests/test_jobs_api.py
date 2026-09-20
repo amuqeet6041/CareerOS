@@ -209,8 +209,12 @@ def test_jobs_out_of_range_params_return_422():
     assert client.get("/api/jobs?page_size=101").status_code == 422
 
 
-def test_save_job_requires_auth_and_returns_placeholder():
+def test_save_job_requires_auth_and_persists():
+    assert client.get("/api/jobs/saved").status_code == 401
     assert client.post("/api/jobs/1/save").status_code == 401
+    assert client.delete("/api/jobs/1/save").status_code == 401
+
+    job_id = _add_job("api-save", "s-1", title="Saved Role")
 
     client.post(
         "/api/auth/register",
@@ -221,9 +225,12 @@ def test_save_job_requires_auth_and_returns_placeholder():
         json={"email": "saver@example.com", "password": "secret123"},
     )
     token = login.json()["access_token"]
-    response = client.post(
-        "/api/jobs/1/save",
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    assert response.status_code == 200
-    assert "placeholder" in response.json()["message"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = client.post(f"/api/jobs/{job_id}/save", headers=headers)
+    assert response.status_code == 201
+    assert response.json()["job_id"] == job_id
+
+    saved = client.get("/api/jobs/saved", headers=headers)
+    assert saved.status_code == 200
+    assert [item["job_id"] for item in saved.json()] == [job_id]

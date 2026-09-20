@@ -6,6 +6,8 @@ import { ArrowLeft } from "lucide-react";
 
 import { getJobById } from "@/services/jobService";
 import { useJobMatch } from "@/hooks/useJobMatch";
+import { useSavedJobs } from "@/hooks/useSavedJobs";
+import { useApplications } from "@/hooks/useApplications";
 import { useAuth } from "@/hooks/useAuth";
 import {
   formatSalary,
@@ -14,7 +16,8 @@ import {
   formatExperienceRequirement,
 } from "@/utils/formatters";
 
-import ApplyButton from "./ApplyButton";
+import ApplyNowButton from "./ApplyNowButton";
+import SaveJobButton from "./SaveJobButton";
 import MatchCard from "./MatchCard";
 import { JobDetailSkeleton } from "./Skeletons";
 import EmptyState from "@/components/shared/EmptyState";
@@ -51,6 +54,14 @@ export default function JobDetailView({ jobId }) {
   }, [jobId]);
 
   const match = useJobMatch(jobId, {
+    enabled: status === "success" && isAuthenticated && !authLoading,
+  });
+
+  const saved = useSavedJobs({
+    enabled: status === "success" && isAuthenticated && !authLoading,
+  });
+
+  const applications = useApplications({
     enabled: status === "success" && isAuthenticated && !authLoading,
   });
 
@@ -185,9 +196,41 @@ export default function JobDetailView({ jobId }) {
               Apply
             </h2>
             <p className="mt-2 text-sm text-navy/60">
-              Applications open on the employer&apos;s website.
+              {isAuthenticated && !authLoading ? (
+                <>
+                  Applications open on the employer&apos;s website. Applying
+                  records the job in{" "}
+                  <Link
+                    href="/student-dashboard/applications"
+                    className="text-accent hover:underline"
+                  >
+                    My Applications
+                  </Link>{" "}
+                  so you can track it.
+                </>
+              ) : (
+                <>Applications open on the employer&apos;s website.</>
+              )}
             </p>
-            <ApplyButton url={job.application_url} className="mt-3 w-full text-center" />
+            <ApplyNowButton
+              jobId={job.id}
+              jobTitle={job.title}
+              url={job.application_url}
+              authenticated={isAuthenticated && !authLoading}
+              applied={applications.appliedIds.has(job.id)}
+              onTracked={applications.markApplied}
+              showTrackedHint
+              className="mt-3 w-full text-center"
+            />
+            <SaveJobButton
+              jobId={job.id}
+              jobTitle={job.title}
+              saved={saved.savedIds.has(job.id)}
+              authenticated={isAuthenticated && !authLoading}
+              disabled={saved.loading}
+              onToggle={saved.toggle}
+              className="mt-3 w-full"
+            />
           </section>
 
           <MatchCard
