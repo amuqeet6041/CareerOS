@@ -15,3 +15,7 @@ export async function uploadResume(file) {
 export async function getResumeAnalysis() {
   return apiFetch("/api/resume/analysis");
 }
+
+export async function analyzeResume() {
+  return apiFetch("/api/resume/analyze", { method: "POST" });
+}

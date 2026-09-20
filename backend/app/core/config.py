@@ -42,7 +42,15 @@ class Settings(BaseSettings):
     AI_MAX_RESUME_CHARS: int = 30000
     AI_TIMEOUT_SECONDS: int = 30
 
-    ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]
+    # Explicit allow-list only: the Next.js dev server can run on 3000 or 3001
+    # and may be reached via localhost or 127.0.0.1. Never use "*" with
+    # credentials. Add real frontend origins before any production deploy.
+    ALLOWED_ORIGINS: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+    ]
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

@@ -18,6 +18,8 @@ const STATUS_LABELS = {
   rejected: "Rejected",
 };
 
+export { STATUS_LABELS };
+
 export default function ApplicationStatus({ status }) {
   const label = STATUS_LABELS[status] ?? status;
   const style =

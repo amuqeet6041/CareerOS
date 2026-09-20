@@ -58,6 +58,18 @@
   before the external URL opens; unauthenticated users get sign-in links and
   unchanged external navigation). 222 backend tests pass and `next build` is
   green.
+- **Phase 6 — Real Personalized Dashboard** ✅ Complete. See
+  `docs/PHASE_6_REPORT.md`. The student dashboard is now a frontend
+  composition of existing APIs (no backend changes, no fake data): real
+  profile summary, resume status (parsed/ai_analyzed/ai_failed only, with an
+  `ai_failed` retry wired to `POST /api/resume/analyze`), a transparent
+  deterministic profile-completion formula (fixed 6 components, documented),
+  bounded recommendations (15 candidates → per-job match → top 5 with a
+  meaningful, non-null, above-zero score), application stats + recent
+  applications from real records, saved-jobs summary, and a factual career
+  overview. Each section owns its skeleton/error/retry/empty state, and the
+  layout is responsive down to 375px. 222 backend tests pass and
+  `next build` is green.
 
 ## Completed (historical foundation phases)
 - **Authentication** ✅ Real registration/login flows, JWT issuance and
@@ -77,9 +89,8 @@
   documents, and replace-on-reupload behavior.
 
 ## Planned
-- **Phase 6 — Dashboard & Insights**: Profile completion, recommendations, and
-  stats on the student dashboard, plus server-side match ordering so jobs lists
-  can be ranked by score (the remaining Phase 5 sub-item).
+- **Server-side match ordering**: ranking full job-list result sets by match
+  score server-side (deferred sub-item from Phases 5 and 6).
 - **Phase 7 — Real Job Providers**: Integrate one or more approved external job
   sources behind the existing `JobProvider`/normalizer/ingestion pipeline, plus
   scheduled ingestion. Provider identity becomes config-driven

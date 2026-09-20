@@ -1,9 +1,6 @@
 import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import ProfileSummary from "@/components/dashboard/ProfileSummary";
-import JobRecommendations from "@/components/dashboard/JobRecommendations";
-import ApplicationStats from "@/components/dashboard/ApplicationStats";
-import CareerOverview from "@/components/dashboard/CareerOverview";
+import StudentDashboard from "@/components/dashboard/StudentDashboard";
 
 export default function DashboardPage() {
   return (
@@ -12,12 +9,7 @@ export default function DashboardPage() {
       <div className="flex-1">
         <DashboardHeader />
         <main className="mx-auto max-w-6xl space-y-6 px-6 py-8">
-          <ProfileSummary />
-          <div className="grid gap-6 lg:grid-cols-2">
-            <JobRecommendations />
-            <ApplicationStats />
-          </div>
-          <CareerOverview />
+          <StudentDashboard />
         </main>
       </div>
     </div>

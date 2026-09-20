@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { uploadResume, getResumeAnalysis } from "@/services/resumeService";
+import { uploadResume, getResumeAnalysis, analyzeResume } from "@/services/resumeService";
 
 export function useResume() {
   const [analysis, setAnalysis] = useState(null);
@@ -37,5 +37,17 @@ export function useResume() {
     }
   }, []);
 
-  return { analysis, loading, error, load, upload };
+  const retryAnalysis = useCallback(async () => {
+    setError(null);
+    try {
+      const data = await analyzeResume();
+      setAnalysis(data);
+      return data;
+    } catch (err) {
+      setError(err.message || "Resume analysis failed");
+      throw err;
+    }
+  }, []);
+
+  return { analysis, loading, error, load, upload, retryAnalysis };
 }

@@ -20,17 +20,43 @@ function buildHeaders(options) {
   };
 }
 
+// Turn a FastAPI error body into a readable message without leaking backend
+// internals. 422 bodies carry an array of validation items; pick the messages.
+function detailFromBody(body) {
+  if (!body) return "";
+  if (typeof body.detail === "string") return body.detail;
+  if (Array.isArray(body.detail)) {
+    return body.detail
+      .map((item) => item?.msg || "Invalid value")
+      .filter(Boolean)
+      .join("; ");
+  }
+  return "";
+}
+
 export async function apiFetch(path, options = {}) {
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: buildHeaders(options),
-  });
+  let res;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: buildHeaders(options),
+    });
+  } catch (_) {
+    // Network-level failure: backend unreachable, or the browser blocked the
+    // cross-origin request. No backend details exist to surface.
+    const err = new Error(
+      "Unable to connect to CareerOS API. Please check that the backend is running."
+    );
+    err.status = 0;
+    throw err;
+  }
 
   if (!res.ok) {
     let message = `Request failed with status ${res.status}`;
     try {
       const body = await res.json();
-      if (body && body.detail) message = body.detail;
+      const detail = detailFromBody(body);
+      if (detail) message = detail;
     } catch (_) {
       // Non-JSON error body; keep the fallback message.
     }

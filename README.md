@@ -4,7 +4,7 @@ A career platform that reads your resume, extracts structured information
 (skills, education, experience, certifications), and will later match you to
 real job opportunities with Skill Match % and Qualification Match % scores.
 
-> **Status:** Phases 0–5 complete: the app boots, registers/logs in, uploads
+> **Status:** Phases 0–6 complete: the app boots, registers/logs in, uploads
 > and parses resumes, ingests a database-backed job catalog
 > (search/filter/paginate API), matches a user's resume against a job with
 > explained skill/qualification/experience scores, (Phase 3) enriches resumes
@@ -12,12 +12,17 @@ real job opportunities with Skill Match % and Qualification Match % scores.
 > spelling, education/certification detail) that feeds — but never replaces —
 > the deterministic matching engine, (Phase 4) ships a production jobs
 > frontend (public browse + detail, dashboard matches with scoreboards,
-> search/filters/sort/pagination, URL-synced), and (Phase 5) wires real
+> search/filters/sort/pagination, URL-synced), (Phase 5) wires real
 > persisted saved-jobs and application-tracking flows (save/unsave, Saved Jobs
 > and My Applications pages, tracked Apply that still opens the external
-> application). Real external job providers remain **not implemented yet** — see
+> application), and (Phase 6) turns the student dashboard into a live,
+> personalized view composed entirely from real APIs (profile summary,
+> resume status with retry, transparent profile completion, bounded match-
+> ranked recommendations, application stats, recent applications, saved-jobs
+> summary, and a factual career overview — no fake numbers). Real external job
+> providers remain **not implemented yet** — see
 > [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md) and
-> [`docs/PHASE_5_REPORT.md`](docs/PHASE_5_REPORT.md).
+> [`docs/PHASE_6_REPORT.md`](docs/PHASE_6_REPORT.md).
 
 ## Implemented
 - User registration and JWT-based login (HS256), protected routes
@@ -53,6 +58,15 @@ real job opportunities with Skill Match % and Qualification Match % scores.
   and save + applied-aware Apply controls on cards and the detail page
   (tracking recorded for signed-in users before the external application
   opens)
+- **Real personalized dashboard (Phase 6)**: the student dashboard composes
+  existing APIs into a live, honest view — profile summary, resume status card
+  (only backend `parsed`/`ai_analyzed`/`ai_failed` states, with a real retry
+  for failed analysis), a deterministic profile-completion progress bar
+  (documented formula, `lib/profileCompletion.js`), bounded match-ranked
+  recommendations (15 candidates, only jobs with a meaningful score, top 5),
+  application stats + recent applications from real records, saved-jobs
+  summary, and a factual career overview; every section has its own
+  skeleton/error/retry/empty state and the layout is responsive to 375px
 
 ## Not Yet Implemented (planned phases)
 - Real/live external job provider integrations or scraping (demo provider only)
@@ -60,7 +74,8 @@ real job opportunities with Skill Match % and Qualification Match % scores.
   remains the deterministic engine)
 - Application status editing in the UI (backend PATCH exists) and server-side
   match ordering for list ranking
-- Career insights / dashboard analytics
+- AI career insights: skill-gap analysis, career path suggestions, salary
+  prediction, trending roles (the dashboard stays factual only)
 - Email, password reset, OAuth
 
 ## Tech Stack
@@ -207,5 +222,6 @@ development roadmap. Phase reports: [`docs/PHASE_0_REPORT.md`](docs/PHASE_0_REPO
 [`docs/PHASE_1_REPORT.md`](docs/PHASE_1_REPORT.md),
 [`docs/PHASE_2_REPORT.md`](docs/PHASE_2_REPORT.md),
 [`docs/PHASE_3_REPORT.md`](docs/PHASE_3_REPORT.md),
-[`docs/PHASE_4_REPORT.md`](docs/PHASE_4_REPORT.md), and
-[`docs/PHASE_5_REPORT.md`](docs/PHASE_5_REPORT.md).
+[`docs/PHASE_4_REPORT.md`](docs/PHASE_4_REPORT.md),
+[`docs/PHASE_5_REPORT.md`](docs/PHASE_5_REPORT.md), and
+[`docs/PHASE_6_REPORT.md`](docs/PHASE_6_REPORT.md).

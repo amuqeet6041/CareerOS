@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/shared/Button";
+import { useAuth } from "@/hooks/useAuth";
 import { register } from "@/services/authService";
 
 export default function RegisterForm() {
   const router = useRouter();
+  const { signIn } = useAuth();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -21,7 +23,15 @@ export default function RegisterForm() {
     setLoading(true);
     try {
       await register(form);
-      router.push("/login");
+      try {
+        await signIn({ email: form.email, password: form.password });
+        router.push("/student-dashboard");
+        router.refresh();
+      } catch (_) {
+        // Account created, but automatic sign-in failed; the user can complete
+        // the flow through the login page instead.
+        router.push("/login");
+      }
     } catch (err) {
       setError(err.message || "Registration failed");
     } finally {
