@@ -38,6 +38,15 @@
   (`ai_failed` never breaks uploads); a reversible Alembic migration; and
   privacy by construction (no resume text/prompts/responses/keys logged).
   212 backend tests pass.
+- **Phase 4 — Jobs Frontend** ✅ Complete. See `docs/PHASE_4_REPORT.md`.
+  Production-quality jobs UI wired end-to-end: public `/jobs` and
+  `/jobs/[id]`, and the authenticated `/student-dashboard/jobs` (matching
+  surface). Search, filters, sort, pagination and a URL that stays in sync
+  (back/forward + shareable links), skeleton/empty/error states, match-score
+  presentation (bounded per-page, detail-page primary) with every endpoint
+  state handled (sign-in, missing resume, transient error, full score), and
+  Apply Now that only navigates when an application URL exists. No fake data;
+  no backend changes; 212 backend tests still pass and `next build` is green.
 
 ## Completed (historical foundation phases)
 - **Authentication** ✅ Real registration/login flows, JWT issuance and
@@ -57,12 +66,9 @@
   documents, and replace-on-reupload behavior.
 
 ## Planned
-- **Phase 4 — Jobs Frontend**: Wire the public and dashboard jobs pages to
-  `GET /api/jobs` (search, filters, pagination, detail, apply) and present
-  match scores (`GET /api/jobs/{id}/match`) with the empty-resume message.
 - **Phase 5 — Saved Jobs & Applications UI**: Wire job saving (`SavedJob` +
-  `POST /jobs/{id}/save`) and the applications flow end-to-end, plus any new
-  backend work needed.
+  `POST /jobs/{id}/save`) and the applications flow end-to-end, plus server-side
+  match ordering so lists can be ranked by score.
 - **Phase 6 — Dashboard & Insights**: Profile completion, recommendations, and
   stats on the student dashboard.
 - **Phase 7 — Real Job Providers**: Integrate one or more approved external job

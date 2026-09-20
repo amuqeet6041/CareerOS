@@ -257,3 +257,59 @@ is ever asked for a percentage, a match reason, or a recommendation.
   `ProviderJob` records that the normalizer converts into the shared `Job`
   shape. Real external providers arrive in a later phase; until then the
   bundled `DemoJobProvider` is the active provider.
+
+## Jobs Frontend (Phase 4)
+
+Two surfaces are wired to the backend through a single client orchestrator:
+
+```
+             ┌────────────────────────────────────────────────┐
+             │           JobsExplorer (client)                │
+             │  · reads the URL query string as filter state   │
+             │  · pushes every filter/sort/page change back to │
+             │    the URL (router.replace, no-op guarded)      │
+             │  · loading/empty/error/pagination states        │
+             └──────┬────────────────────────────┬─────────────┘
+                    │                            │
+        GET /api/jobs (public + dashboard)       │
+                    │                            │
+                    ▼                            ▼
+   jobService.getJobs → { items, total, page,    jobService.getJobMatch (job detail match,
+        page_size, total_pages }                 dashboard list matches)
+```
+
+- **URL as state**: `lib/jobQuery.js` maps between the query string and the
+  filter object consumed by `useJobs`. `queryToFilters`/`filtersToQuery` keep
+  values as strings so URL → filter → URL round-trips losslessly. Back/forward
+  navigation and shared paginated links work because `useJobs` re-applies the
+  external filter key when it changes (and never clobbers it when identical).
+- **No per-keystroke requests**: free-text search commits on submit (Enter or
+  the Search button, `JobSearch`); the filter panel collects edits in a local
+  draft and commits only on **Apply Filters**; selects (work mode, employment
+  type, sort) apply immediately on change. Filter/sort changes restart at
+  page 1; explicit pagination keeps the current position.
+- **List matches are bounded**: `useJobMatches` computes match status for the
+  *visible page only* (`MAX_LIST_MATCHES = 12`), and only in the dashboard
+  variant for authenticated users. The primary match presentation lives on the
+  job detail page (`useJobMatch`); Phase 5 will add server-side scoring to
+  order the full result set. Match data is React state only — never cached in
+  the database (scores stay on-demand per the backend design).
+- **Match never guesses**: `MatchScore`/`MatchCard` render every state of the
+  match endpoint — `sign-in` (login CTA), `no-resume` (upload CTA to the
+  resume dashboard), transient `error` (retry), or the full score. Unknown
+  components are labelled **Not enough data** in visible text (never 0%),
+  and the backend's `component_weights` are shown so overall scores stay
+  transparent.
+- **Apply Now** navigates to `application_url` in a new tab
+  (`target="_blank" rel="noopener noreferrer"`); without a URL the control is
+  disabled with an explanatory title. Saving is deliberately **not** wired
+  (Phase 5 persistence) so the UI never fakes a save.
+- **No fake data**: every card/score/company comes from the live API. Lists
+  show skeletons while loading, a retryable error state, and a "Clear filters"
+  empty state. The public surface reuses the marketing dark band (`#07111F`)
+  with the existing light app theme for the results area; both routes wrap the
+  client explorer in `<Suspense>` so `/jobs` stays statically prerendered.
+- **Routes**: `/(public)/jobs` (public browse), `/(public)/jobs/[id]`
+  (detail + match), `/student-dashboard/jobs` (authenticated matches). The
+  retired dead services (`saveJob`) were removed; the demo contract
+  (`careeros-demo.example` apply links) is unchanged.

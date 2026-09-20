@@ -4,16 +4,18 @@ A career platform that reads your resume, extracts structured information
 (skills, education, experience, certifications), and will later match you to
 real job opportunities with Skill Match % and Qualification Match % scores.
 
-> **Status:** Phases 0–3 complete: the app boots, registers/logs in, uploads
+> **Status:** Phases 0–4 complete: the app boots, registers/logs in, uploads
 > and parses resumes, ingests a database-backed job catalog
 > (search/filter/paginate API), matches a user's resume against a job with
-> explained skill/qualification/experience scores, and (Phase 3) enriches
-> resumes with provider-agnostic AI-structured analysis (dated experience, AI
-> skill spelling, education/certification detail) that feeds — but never
-> replaces — the deterministic matching engine. Real external job providers and
-> the jobs/saved-jobs UIs remain **not implemented yet** — see
+> explained skill/qualification/experience scores, (Phase 3) enriches resumes
+> with provider-agnostic AI-structured analysis (dated experience, AI skill
+> spelling, education/certification detail) that feeds — but never replaces —
+> the deterministic matching engine, and (Phase 4) ships a production jobs
+> frontend (public browse + detail, dashboard matches with scoreboards,
+> search/filters/sort/pagination, URL-synced). Real external job providers and
+> the saved-jobs/applications UIs remain **not implemented yet** — see
 > [`docs/DEVELOPMENT_ROADMAP.md`](docs/DEVELOPMENT_ROADMAP.md) and
-> [`docs/PHASE_3_REPORT.md`](docs/PHASE_3_REPORT.md).
+> [`docs/PHASE_4_REPORT.md`](docs/PHASE_4_REPORT.md).
 
 ## Implemented
 - User registration and JWT-based login (HS256), protected routes
@@ -35,12 +37,18 @@ real job opportunities with Skill Match % and Qualification Match % scores.
   (`POST /api/resume/upload` + retry `POST /api/resume/analyze`), a strict
   deterministic employment-duration calculation, and AI data flowing into the
   Phase 2 matching engine
+- **Jobs frontend (Phase 4)**: live public browse (`/jobs`) and detail
+  (`/jobs/[id]`) plus the authenticated dashboard matches surface
+  (`/student-dashboard/jobs`): search, filters, sort, pagination, URL-synced
+  state (back/forward + shareable links), skeleton/empty/error states, and
+  match-score presentation (per-page on lists, full panel on detail) with
+  Apply Now that navigates to the real application URL
 
 ## Not Yet Implemented (planned phases)
 - Real/live external job provider integrations or scraping (demo provider only)
 - AI-assisted/semantic matching (AI extracts candidate *data* only; scoring
   remains the deterministic engine)
-- Jobs, saved-jobs, and applications frontend UI
+- Saved-jobs and applications frontend UI (Phase 5; saving is not faked today)
 - Career insights / dashboard analytics
 - Email, password reset, OAuth
 
@@ -186,5 +194,6 @@ never logged.
 See [`docs/`](docs/) for architecture, schema, API, user-flow, and the phased
 development roadmap. Phase reports: [`docs/PHASE_0_REPORT.md`](docs/PHASE_0_REPORT.md),
 [`docs/PHASE_1_REPORT.md`](docs/PHASE_1_REPORT.md),
-[`docs/PHASE_2_REPORT.md`](docs/PHASE_2_REPORT.md), and
-[`docs/PHASE_3_REPORT.md`](docs/PHASE_3_REPORT.md).
+[`docs/PHASE_2_REPORT.md`](docs/PHASE_2_REPORT.md),
+[`docs/PHASE_3_REPORT.md`](docs/PHASE_3_REPORT.md), and
+[`docs/PHASE_4_REPORT.md`](docs/PHASE_4_REPORT.md).
