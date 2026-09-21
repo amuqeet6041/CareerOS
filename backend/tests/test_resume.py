@@ -293,6 +293,42 @@ Java, Go
     assert skills == 2
 
 
+def test_upload_pdf_with_ai_disabled_returns_parsed(monkeypatch):
+    """Uploading a PDF must succeed when AI_PROVIDER is empty, and the resume
+    must be stored as a deterministic parse (never a failure)."""
+    monkeypatch.setattr(settings, "AI_PROVIDER", "")
+    register_user(email="nodeai@example.com")
+    token = login_user(email="nodeai@example.com").json()["access_token"]
+
+    response = client.post(
+        "/api/resume/upload",
+        files={"file": ("resume.pdf", make_pdf(), "application/pdf")},
+        headers=upload_headers(token),
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["analysis_status"] == "parsed"
+    assert data["file_name"] == "resume.pdf"
+    # Deterministic-only path never invents experience.
+    assert data["total_experience_years"] is None
+
+
+def test_upload_with_nonfile_part_rejected():
+    """A multipart part carrying a plain string instead of a real file must be
+    rejected cleanly. Guards against clients that append an object to the
+    FormData (browsers coerce it to "[object Object]"), which is how an
+    earlier frontend bug used to trigger a second phantom upload."""
+    register_user(email="formstr@example.com")
+    token = login_user(email="formstr@example.com").json()["access_token"]
+
+    response = client.post(
+        "/api/resume/upload",
+        data={"file": str({"id": 1, "file_name": "resume.pdf"})},
+        headers=upload_headers(token),
+    )
+    assert response.status_code == 422
+
+
 def test_deterministic_extraction():
     result = parse_resume(make_docx(), "resume.docx", DOCX_CT)
 

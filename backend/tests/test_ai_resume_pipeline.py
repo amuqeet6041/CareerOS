@@ -571,6 +571,75 @@ def test_match_uses_ai_extracted_experience_and_skills(monkeypatch):
         db.close()
 
 
+def test_ai_analyzed_resume_feeds_insights_and_matching(monkeypatch):
+    """End-to-end Phase 7.2 chain: AI upload -> persisted children -> career
+    insights (strengths/gaps/directions) and deterministic matching both consume
+    the same stored resume data."""
+    register_user(email="ai.e2e@example.com")
+    token = login_user(email="ai.e2e@example.com").json()["access_token"]
+
+    patch_provider(monkeypatch, response=VALID_EXTRACTION)
+    response = upload_docx(token)
+    assert response.status_code == 201
+    assert response.json()["analysis_status"] == "ai_analyzed"
+
+    job_id = _add_job(
+        "ai-e2e",
+        "e2e-1",
+        title="Data Analyst",
+        skills={"Python", "SQL", "Phase72MissingSkill"},
+        qualifications={"Bachelor of Science"},
+        minimum_experience_years=2,
+        maximum_experience_years=8,
+    )
+
+    # Career Insights uses the AI-extracted skills as its source of truth.
+    insights = client.get("/api/career-insights", headers=auth_headers(token))
+    assert insights.status_code == 200
+    body = insights.json()
+    assert body["has_resume"] is True
+    summary_skills = {s.lower() for s in body["profile_summary"]["skills"]}
+    assert "python" in summary_skills
+    assert "sql" in summary_skills
+    strength_names = {s["skill"].lower() for s in body["strengths"]}
+    assert "python" in strength_names
+    gap_names = {g["skill"] for g in body["skill_gaps"]}
+    assert "Phase72MissingSkill" in gap_names
+    titles = {d["title"] for d in body["career_directions"]}
+    assert any("Data Analyst" in t for t in titles)
+
+    # Deterministic matching scores the AI-extracted skills (2 of 3 required).
+    match = client.get(f"/api/jobs/{job_id}/match", headers=auth_headers(token))
+    assert match.status_code == 200
+    mbody = match.json()
+    assert mbody["skill_match_percentage"] == 66.67
+    assert "Python" in mbody["matched_skills"]
+    assert "SQL" in mbody["matched_skills"]
+    assert "Phase72MissingSkill" in mbody["missing_skills"]
+
+
+def test_reanalysis_never_duplicates_child_rows(monkeypatch):
+    """Re-running analysis (retry) replaces children instead of appending, so
+    repeated retries never create duplicate skill/education/experience rows."""
+    register_user(email="ai.nodup@example.com")
+    token = login_user(email="ai.nodup@example.com").json()["access_token"]
+    patch_provider(monkeypatch, response=VALID_EXTRACTION)
+
+    first = upload_docx(token)
+    assert first.status_code == 201
+    first_skills = first.json()["skills"]
+    assert len(first_skills) == 5  # "Python" duplicated in payload, deduped
+
+    for _ in range(2):
+        assert client.post("/api/resume/analyze", headers=auth_headers(token)).status_code == 200
+
+    refreshed = client.get("/api/resume/analysis", headers=auth_headers(token)).json()
+    assert refreshed["analysis_status"] == "ai_analyzed"
+    assert [s["name"] for s in refreshed["skills"]] == [s["name"] for s in first_skills]
+    assert len({s["id"] for s in refreshed["skills"]}) == len(first_skills)
+    assert len(refreshed["education"]) == 1
+
+
 def test_match_ai_pipeline_profile_carries_experience(monkeypatch):
     """build_candidate_profile now reads resume.total_experience_years."""
     from app.services.matching_service import build_candidate_profile

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { uploadResume, getResumeAnalysis, analyzeResume } from "@/services/resumeService";
+import { getResumeAnalysis, analyzeResume } from "@/services/resumeService";
 
 export function useResume() {
   const [analysis, setAnalysis] = useState(null);
@@ -25,16 +25,11 @@ export function useResume() {
     }
   }, []);
 
-  const upload = useCallback(async (file) => {
+  // Consume the result of an upload performed by ResumeUpload. This must NOT
+  // re-upload the parsed result: it only mirrors it into local state.
+  const applyResult = useCallback((result) => {
     setError(null);
-    try {
-      const data = await uploadResume(file);
-      setAnalysis(data);
-      return data;
-    } catch (err) {
-      setError(err.message || "Resume processing failed");
-      throw err;
-    }
+    setAnalysis(result);
   }, []);
 
   const retryAnalysis = useCallback(async () => {
@@ -49,5 +44,5 @@ export function useResume() {
     }
   }, []);
 
-  return { analysis, loading, error, load, upload, retryAnalysis };
+  return { analysis, loading, error, load, applyResult, retryAnalysis };
 }

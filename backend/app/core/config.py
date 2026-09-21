@@ -72,10 +72,15 @@ class Settings(BaseSettings):
         env = (self.ENVIRONMENT or "development").strip().lower()
         provider = (self.AI_PROVIDER or "").strip().lower()
         if provider:
-            if provider == "mock" and env == "production":
-                raise ValueError(
-                    "AI_PROVIDER=mock is only for development and tests."
-                )
+            if provider == "mock":
+                # Development/tests only: a deterministic provider with no API
+                # key. Refused in production so real deployments never run on
+                # mock intelligence.
+                if env == "production":
+                    raise ValueError(
+                        "AI_PROVIDER=mock is only for development and tests."
+                    )
+                return self
             if provider not in {"openai"}:
                 raise ValueError(
                     f"Unsupported AI_PROVIDER {provider!r}; expected one of: "

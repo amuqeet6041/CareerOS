@@ -60,6 +60,12 @@ export async function apiFetch(path, options = {}) {
     } catch (_) {
       // Non-JSON error body; keep the fallback message.
     }
+    // An authenticated request that gets a 401 (without a backend-provided
+    // detail, e.g. during login the API returns "Invalid email or password")
+    // means the token expired while using the app.
+    if (res.status === 401 && getToken() && !message.startsWith("Request failed")) {
+      message = "Your session has expired. Please sign in again.";
+    }
     const err = new Error(message);
     err.status = res.status;
     throw err;
