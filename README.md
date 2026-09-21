@@ -242,5 +242,6 @@ development roadmap. Phase reports: [`docs/PHASE_0_REPORT.md`](docs/PHASE_0_REPO
 [`docs/PHASE_3_REPORT.md`](docs/PHASE_3_REPORT.md),
 [`docs/PHASE_4_REPORT.md`](docs/PHASE_4_REPORT.md),
 [`docs/PHASE_5_REPORT.md`](docs/PHASE_5_REPORT.md),
-[`docs/PHASE_6_REPORT.md`](docs/PHASE_6_REPORT.md), and
-[`docs/PHASE_7_REPORT.md`](docs/PHASE_7_REPORT.md).
+[`docs/PHASE_6_REPORT.md`](docs/PHASE_6_REPORT.md),
+[`docs/PHASE_7_REPORT.md`](docs/PHASE_7_REPORT.md), and
+[`docs/PHASE_7_1_REPORT.md`](docs/PHASE_7_1_REPORT.md).

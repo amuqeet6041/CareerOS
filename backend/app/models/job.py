@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -15,6 +15,13 @@ class Job(Base):
     __tablename__ = "jobs"
     __table_args__ = (
         UniqueConstraint("source", "external_id", name="uq_jobs_source_external_id"),
+        # Filters + default newest-first sorting used by the job search queries.
+        Index("ix_jobs_is_active", "is_active"),
+        Index("ix_jobs_posted_at", "posted_at"),
+        Index("ix_jobs_city", "city"),
+        Index("ix_jobs_work_mode", "work_mode"),
+        Index("ix_jobs_employment_type", "employment_type"),
+        Index("ix_jobs_source", "source"),
     )
 
     id = Column(Integer, primary_key=True, index=True)
