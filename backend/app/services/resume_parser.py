@@ -82,7 +82,15 @@ _BULLET_PREFIX_RE = re.compile(
 _DEGREE_RE = re.compile(
     r"(\b(?:Bachelor'?s?|Master'?s?|Associate'?s?)\b"
     r"|\b(?:Bachelor|Master|Doctor)\s+of\s+(?:Science|Arts|Business\s+Administration|Engineering|Education|Laws|Philosophy|Fine\s+Arts)\b"
-    r"|\b(?:B\.?Sc|B\.?A|B\.?S|B\.?Eng|B\.?Tech|BBA|BCom|MBA|M\.?A|M\.?Sc|M\.?S|M\.?Eng|M\.?Tech|MPhil|PhD|Ph\.?D|Doctorate|Diploma|LLB|LL\.?B|JD|MD)\b)",
+    r"|\b(?:B\.?Sc|B\.?A|B\.?S|B\.?Eng|B\.?Tech|BBA|BCom|MBA|M\.?A|M\.?Sc|M\.?S|M\.?Eng|M\.?Tech|MPhil|PhD|Ph\.?D|Doctorate|Diploma|LLB|LL\.?B|JD|MD)\b"
+    r"|\b(?:Intermediate|Intermediate\s+Examination|A[- ]Levels?|O[- ]Levels?)\b)",
+    re.IGNORECASE,
+)
+# Short degree abbreviations only (used to split "BSc Economics" into
+# degree "BSc" + field "Economics"). Wordy forms like "Bachelor of Science"
+# are handled by the " in " branch of _split_degree_field instead.
+_DEGREE_ABBREV_RE = re.compile(
+    r"^(?:B\.?Sc|B\.?A|B\.?S|B\.?Eng|B\.?Tech|BBA|BCom|MBA|M\.?A|M\.?Sc|M\.?S|M\.?Eng|M\.?Tech|MPhil|PhD|Ph\.?D|LLB|LL\.?B|JD|MD)(?=[\s,;:\u2013\u2014|.]|$)",
     re.IGNORECASE,
 )
 _INSTITUTION_RE = re.compile(
@@ -168,24 +176,40 @@ def _clean_skill_item(item: str) -> str:
 
 
 def parse_skills(section_lines: list[str]) -> list[str]:
-    combined = " ".join(line for line in section_lines if line.strip())
-    tokens = _SKILL_SPLIT_RE.split(combined)
     seen: set[str] = set()
     skills: list[str] = []
-    for token in tokens:
-        item = _clean_skill_item(token)
-        colon_match = _SKILL_COLON_RE.match(item)
+
+    def add_token(item: str) -> None:
+        cleaned = _clean_skill_item(item)
+        colon_match = _SKILL_COLON_RE.match(cleaned)
         if colon_match:
-            item = _clean_skill_item(colon_match.group(1))
-        if not item or item.lower() in _SKILL_STOP_WORDS:
-            continue
-        if len(item) < 2 or len(item) > 60:
-            continue
-        key = item.lower()
+            cleaned = _clean_skill_item(colon_match.group(1))
+        if not cleaned or cleaned.lower() in _SKILL_STOP_WORDS:
+            return
+        if len(cleaned) < 2 or len(cleaned) > 60:
+            return
+        key = cleaned.lower()
         if key in seen:
-            continue
+            return
         seen.add(key)
-        skills.append(item)
+        skills.append(cleaned)
+
+    for raw in section_lines:
+        line = _strip_bullet(raw)
+        if not line:
+            continue
+        colon_match = _SKILL_COLON_RE.match(line)
+        if colon_match:
+            line = colon_match.group(1)
+        parts = _SKILL_SPLIT_RE.split(line)
+        if len(parts) == 1:
+            # No in-line delimiter (comma, bullet, pipe): the whole line is one
+            # skill item ("Data Analysis", "Python Programming"). One skill per
+            # line is the dominant resume layout, so a line boundary must never
+            # merge separate skills into one ("Python SQL Pandas").
+            parts = [line]
+        for part in parts:
+            add_token(part)
     return skills
 
 
@@ -203,6 +227,12 @@ def _split_degree_field(line: str) -> tuple[str | None, str | None]:
             if degree_text.strip() and field_text.strip():
                 degree = degree_text.strip()
                 field = field_text.strip()
+        elif degree is None and _DEGREE_ABBREV_RE.match(segment):
+            # "BS Economics and Data Science" -> degree "BS", field
+            # "Economics and Data Science" so the meaningful qualification is
+            # preserved and matchable instead of one opaque blob.
+            degree = _DEGREE_ABBREV_RE.match(segment).group(0)
+            field = segment[len(degree):].strip() or None
         elif degree is None and _DEGREE_RE.search(segment):
             degree = segment
     return degree, field
@@ -226,9 +256,19 @@ def parse_education(section_lines: list[str]) -> list[dict[str, Any]]:
 
     def flush() -> None:
         nonlocal degree, field, institution
-        if institution:
+        # A degree alone (no institution line) is still a meaningful
+        # qualification — never drop it ("MBA", "Intermediate", "BS Economics").
+        if degree or institution:
             entries.append(
-                {"institution": institution, "degree": degree, "field_of_study": field}
+                {
+                    "institution": institution,
+                    "degree": degree,
+                    "field_of_study": field,
+                    # Deterministic parser never guesses dates; these keys are
+                    # present so AI and fallback share the canonical shape.
+                    "start_year": None,
+                    "end_year": None,
+                }
             )
         degree = field = institution = None
 
@@ -304,12 +344,18 @@ def parse_experience(section_lines: list[str]) -> list[dict[str, Any]]:
     flush()
     result: list[dict[str, Any]] = []
     for entry in entries:
-        entry_copy = {
-            "title": entry["title"],
-            "company": entry["company"],
-        }
         description_lines = entry["_desc_lines"]
-        entry_copy["description"] = " ".join(description_lines) if description_lines else None
+        entry_copy = {
+            "company": entry["company"],
+            "title": entry["title"],
+            "description": " ".join(description_lines) if description_lines else None,
+            # Canonical shape parity with AI output; deterministic parser never
+            # guesses dates/roles, so these stay absent (null).
+            "location": None,
+            "start_date": None,
+            "end_date": None,
+            "currently_employed": False,
+        }
         result.append(entry_copy)
     return result
 
@@ -353,7 +399,16 @@ def parse_certifications(section_lines: list[str]) -> list[dict[str, str | None]
         cleaned_name = _clean_certificate_name(name)
         if not cleaned_name:
             continue
-        entries.append({"name": cleaned_name, "issuer": issuer})
+        entries.append(
+            {
+                "name": cleaned_name,
+                "issuer": issuer,
+                # Canonical shape parity with AI output (deterministic parser
+                # never guesses issue/expiry years).
+                "issue_year": None,
+                "expiry_year": None,
+            }
+        )
     return entries
 
 

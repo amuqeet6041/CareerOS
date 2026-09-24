@@ -352,3 +352,119 @@ def test_deterministic_extraction():
         and entry["issuer"] == "Amazon Web Services"
         for entry in certifications
     )
+
+
+def test_deterministic_skills_one_per_line():
+    """One skill per line (the dominant resume layout) must yield each skill
+    as its own item — never merged into a single blob."""
+    text = """Technical Skills
+Python
+SQL
+Pandas
+NumPy
+Power BI
+Excel
+"""
+    result = parse_resume(make_docx(text), "skills.docx", DOCX_CT)
+    assert result["skills"] == ["Python", "SQL", "Pandas", "NumPy", "Power BI", "Excel"]
+
+
+def test_deterministic_skills_bullets_and_comma_mix():
+    text = """Skills
+\u2022 Python, SQL
+\u2022 Pandas
+\u2022 Power BI | Tableau
+"""
+    result = parse_resume(make_docx(text), "skills.docx", DOCX_CT)
+    assert result["skills"] == ["Python", "SQL", "Pandas", "Power BI", "Tableau"]
+
+
+def test_deterministic_skills_case_dedupe_keeps_versions():
+    """Case variants collapse to one skill (display spelling = first seen), but
+    versioned variants like "Python 3" stay distinct skills — the normalizer is
+    deliberately conservative and never merges unrelated concepts."""
+    text = """Skills
+Python
+python
+PYTHON
+Python 3
+Pandas
+"""
+    result = parse_resume(make_docx(text), "skills.docx", DOCX_CT)
+    assert result["skills"] == ["Python", "Python 3", "Pandas"]
+
+
+def test_deterministic_qualification_formats():
+    """Short-form degrees and pre-university qualifications are recognized and
+    preserved (degree + field where the layout permits), even when the line
+    carries no institution name."""
+    text = """Education
+Bachelor of Science in Economics and Data Science
+BS Economics and Data Science
+Bachelor of Science in Computer Science
+BSc Economics
+Master of Business Administration
+MBA
+MS Data Science
+Intermediate
+A Levels
+"""
+    result = parse_resume(make_docx(text), "quals.docx", DOCX_CT)
+    by_degree = {(e["degree"], e["field_of_study"]) for e in result["education"]}
+    assert ("Bachelor of Science", "Economics and Data Science") in by_degree
+    assert ("BS", "Economics and Data Science") in by_degree
+    assert ("Bachelor of Science", "Computer Science") in by_degree
+    assert ("BSc", "Economics") in by_degree
+    assert ("Master of Business Administration", None) in by_degree
+    assert ("MBA", None) in by_degree
+    assert ("MS", "Data Science") in by_degree
+    assert ("Intermediate", None) in by_degree
+    assert ("A Levels", None) in by_degree
+
+
+def test_deterministic_qualification_matches_job_requirement_shape():
+    """A short-form qualification parses into matchable tokens; the exact-match
+    engine (no synonyms) scores 100% when the job lists the same normalized
+    token — e.g. an MBA vs a job requiring an MBA."""
+    from app.services.matching_engine import qualification_match
+
+    text = """Education
+MBA
+"""
+    result = parse_resume(make_docx(text), "quals.docx", DOCX_CT)
+    candidate = ["MBA"]
+    assert qualification_match(candidate, ["MBA"]).percentage == 100.0
+    # The parsed entry keeps the meaningful short-form degree intact.
+    assert result["education"][0]["degree"] == "MBA"
+
+    text2 = """Education
+BS Economics and Data Science
+"""
+    result2 = parse_resume(make_docx(text2), "quals.docx", DOCX_CT)
+    entry = result2["education"][0]
+    # build_candidate_profile emits the combined "<degree> in <field>" token.
+    candidate_profile = ["BS", "Economics and Data Science", "BS in Economics and Data Science"]
+    assert entry["degree"] == "BS"
+    assert entry["field_of_study"] == "Economics and Data Science"
+    assert qualification_match(candidate_profile, ["BS in Economics and Data Science"]).percentage == 100.0
+
+
+def test_deterministic_upload_with_ai_disabled_keeps_line_skills(monkeypatch):
+    monkeypatch.setattr(settings, "AI_PROVIDER", "")
+    register_user(email="lineskills@example.com")
+    token = login_user(email="lineskills@example.com").json()["access_token"]
+
+    text = """Skills
+Python
+SQL
+Power BI
+"""
+    response = client.post(
+        "/api/resume/upload",
+        files={"file": ("lineskills.docx", make_docx(text), DOCX_CT)},
+        headers=upload_headers(token),
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["analysis_status"] == "parsed"
+    assert [s["name"] for s in data["skills"]] == ["Python", "SQL", "Power BI"]

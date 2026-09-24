@@ -494,6 +494,69 @@ def test_ai_failure_falls_back_to_deterministic(monkeypatch):
     assert "Python" in skill_names
 
 
+def test_ai_rate_limit_falls_back_to_useful_skills(monkeypatch):
+    """The exact 429 scenario from production logs: the provider raises a
+    rate_limit AIRequestError. The endpoint must stay successful, stay
+    ai_failed, and still extract useful per-line skills through the fallback —
+    not degrade to an empty/poor profile."""
+    register_user(email="ai.rl@example.com")
+    token = login_user(email="ai.rl@example.com").json()["access_token"]
+    patch_provider(
+        monkeypatch,
+        error=AIRequestError("rate limit exceeded", category="rate_limit"),
+    )
+
+    text = """Technical Skills
+Python
+SQL
+Pandas
+Power BI
+Excel
+
+Education
+BS Economics and Data Science
+"""
+    response = upload_docx(token, text=text)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["analysis_status"] == "ai_failed"
+    skill_names = [skill["name"] for skill in data["skills"]]
+    assert skill_names == ["Python", "SQL", "Pandas", "Power BI", "Excel"]
+    assert data["education"][0]["degree"] == "BS"
+    assert data["education"][0]["field_of_study"] == "Economics and Data Science"
+
+
+def test_deterministic_and_ai_shapes_share_canonical_schema(monkeypatch):
+    """AI output and deterministic fallback must persist through the SAME
+    canonical structure. Verify both builders emit the same persistence key
+    sets for every resume section so the two paths are interchangeable."""
+    from app.services.resume_parser import parse_resume
+    from tests.test_resume import make_docx
+
+    patch_provider(monkeypatch, response=VALID_EXTRACTION)
+    ai_structured = structured_to_persist(
+        AIResumeExtraction.model_validate(VALID_EXTRACTION)
+    )
+    deterministic = parse_resume(make_docx(), "r.docx", DOCX_CT)
+
+    EDUCATION_KEYS = {"institution", "degree", "field_of_study", "start_year", "end_year"}
+    EXPERIENCE_KEYS = {
+        "company", "title", "description", "location",
+        "start_date", "end_date", "currently_employed",
+    }
+    CERTIFICATION_KEYS = {"name", "issuer", "issue_year", "expiry_year"}
+
+    assert {"skills", "education", "experience", "certifications"} <= set(ai_structured)
+    assert {"skills", "education", "experience", "certifications"} <= set(deterministic)
+
+    assert set(ai_structured["education"][0]) == EDUCATION_KEYS
+    assert set(deterministic["education"][0]) == EDUCATION_KEYS
+    assert set(ai_structured["experience"][0]) == EXPERIENCE_KEYS
+    assert set(deterministic["experience"][0]) == EXPERIENCE_KEYS
+    assert set(ai_structured["certifications"][0]) == CERTIFICATION_KEYS
+    assert set(deterministic["certifications"][0]) == CERTIFICATION_KEYS
+
+
 def test_ai_validation_failure_falls_back(monkeypatch):
     register_user(email="ai.badschema@example.com")
     token = login_user(email="ai.badschema@example.com").json()["access_token"]
