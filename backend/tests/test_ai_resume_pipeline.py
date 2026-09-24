@@ -21,6 +21,8 @@ from app.models.user import User
 from app.services.ai.base import AIConfigurationError, AIRequestError
 from app.services.ai.pipeline import run_resume_analysis, structured_to_persist
 from app.services.ai.provider import (
+    GEMINI_DEFAULT_MODEL,
+    PROVIDER_GEMINI_BASE_URL,
     MockAIProvider,
     OpenAICompatibleProvider,
     get_ai_provider,
@@ -237,22 +239,82 @@ def test_get_ai_provider_none_when_disabled(monkeypatch):
     assert get_ai_provider() is None
 
 
-def test_get_ai_provider_returns_openai_provider(monkeypatch):
-    monkeypatch.setattr(settings, "AI_PROVIDER", "openai")
-    monkeypatch.setattr(settings, "AI_API_KEY", "sk-test")
+def test_get_ai_provider_returns_gemini_provider(monkeypatch):
+    """AI_PROVIDER=gemini must build an OpenAI-compatible provider pointed at
+    Google's OpenAI-compatible chat-completions endpoint, resolving its own
+    endpoint and model defaults when nothing is explicitly configured."""
+    monkeypatch.setattr(settings, "AI_PROVIDER", "gemini")
+    monkeypatch.setattr(settings, "AI_API_KEY", "AIza-test")
+    monkeypatch.setattr(settings, "AI_MODEL", "")
+    monkeypatch.setattr(settings, "AI_BASE_URL", "")
     provider = get_ai_provider()
     assert isinstance(provider, OpenAICompatibleProvider)
+    # The provider constructor rstrips trailing slashes; the canonical Gemini
+    # constant keeps the documented trailing slash, so compare normalized.
+    assert provider._base_url == PROVIDER_GEMINI_BASE_URL.rstrip("/")
+    # Pin the working default explicitly so reverting to a retired Gemini model
+    # (e.g. gemini-1.5-flash) fails this test even if the constant is changed.
+    assert provider._model == GEMINI_DEFAULT_MODEL == "gemini-3.6-flash"
+
+
+def test_get_ai_provider_gemini_explicit_url_and_model_preserved(monkeypatch):
+    """An explicit AI_BASE_URL/AI_MODEL must override the Gemini defaults."""
+    monkeypatch.setattr(settings, "AI_PROVIDER", "gemini")
+    monkeypatch.setattr(settings, "AI_API_KEY", "AIza-test")
+    monkeypatch.setattr(settings, "AI_MODEL", "gemini-2.0-flash")
+    monkeypatch.setattr(settings, "AI_BASE_URL", "https://custom.example/v1")
+    provider = get_ai_provider()
+    assert isinstance(provider, OpenAICompatibleProvider)
+    assert provider._base_url == "https://custom.example/v1"
+    assert provider._model == "gemini-2.0-flash"
+
+
+def test_get_ai_provider_returns_openai_defaults(monkeypatch):
+    """AI_PROVIDER=openai with empty AI_BASE_URL/AI_MODEL must resolve the
+    OpenAI endpoint and the OpenAI default model."""
+    monkeypatch.setattr(settings, "AI_PROVIDER", "openai")
+    monkeypatch.setattr(settings, "AI_API_KEY", "sk-test")
+    monkeypatch.setattr(settings, "AI_MODEL", "")
+    monkeypatch.setattr(settings, "AI_BASE_URL", "")
+    provider = get_ai_provider()
+    assert isinstance(provider, OpenAICompatibleProvider)
+    assert provider._base_url == "https://api.openai.com/v1"
+    assert provider._model == "gpt-4o-mini"
+
+
+def test_get_ai_provider_openai_explicit_base_url_preserved(monkeypatch):
+    """An explicit OpenAI-compatible AI_BASE_URL must be preserved."""
+    monkeypatch.setattr(settings, "AI_PROVIDER", "openai")
+    monkeypatch.setattr(settings, "AI_API_KEY", "sk-test")
+    monkeypatch.setattr(settings, "AI_MODEL", "my-model")
+    monkeypatch.setattr(settings, "AI_BASE_URL", "https://proxy.example.com/v1")
+    provider = get_ai_provider()
+    assert isinstance(provider, OpenAICompatibleProvider)
+    assert provider._base_url == "https://proxy.example.com/v1"
+    assert provider._model == "my-model"
+
+
+def test_get_ai_provider_mock_returns_mock(monkeypatch):
+    """AI_PROVIDER=mock must return the deterministic MockAIProvider with no
+    API key required."""
+    monkeypatch.setattr(settings, "AI_PROVIDER", "mock")
+    monkeypatch.setattr(settings, "AI_API_KEY", "")
+    provider = get_ai_provider()
+    assert isinstance(provider, MockAIProvider)
 
 
 def test_get_ai_provider_missing_key_raises(monkeypatch):
     monkeypatch.setattr(settings, "AI_PROVIDER", "openai")
     monkeypatch.setattr(settings, "AI_API_KEY", "")
+    monkeypatch.setattr(settings, "AI_MODEL", "")
+    monkeypatch.setattr(settings, "AI_BASE_URL", "")
     with pytest.raises(AIConfigurationError):
         get_ai_provider()
 
 
 def test_get_ai_provider_unsupported_raises(monkeypatch):
     monkeypatch.setattr(settings, "AI_PROVIDER", "claude")
+    monkeypatch.setattr(settings, "AI_API_KEY", "sk-test")
     with pytest.raises(AIConfigurationError):
         get_ai_provider()
 
@@ -309,6 +371,31 @@ def test_openai_malformed_success_body_maps_to_output_error(monkeypatch):
     provider = OpenAICompatibleProvider(api_key="sk-test")
     with pytest.raises(Exception):
         provider.extract_resume_information("hi")
+
+
+def test_config_ai_defaults_are_provider_agnostic():
+    """AI_MODEL/AI_BASE_URL must default to empty so the provider factory (not a
+    hardcoded OpenAI value in Settings) decides the endpoint/model. Without this,
+    AI_PROVIDER=gemini accidentally inherits the OpenAI endpoint."""
+    cfg = Settings(
+        ENVIRONMENT="development",
+        JWT_SECRET="k" * 64,
+        _env_file=None,
+    )
+    assert cfg.AI_PROVIDER == ""
+    assert cfg.AI_MODEL == ""
+    assert cfg.AI_BASE_URL == ""
+
+
+def test_config_invalid_provider_rejected():
+    with pytest.raises(ValidationError):
+        Settings(
+            ENVIRONMENT="development",
+            JWT_SECRET="k" * 64,
+            AI_PROVIDER="claude",
+            AI_API_KEY="sk-test",
+            _env_file=None,
+        )
 
 
 def test_config_production_requires_ai_key():

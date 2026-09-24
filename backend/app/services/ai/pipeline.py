@@ -100,13 +100,16 @@ def run_resume_analysis(raw_text: str) -> tuple[dict | None, str]:
     """Analyze raw resume text and return ``(structured, status)``.
 
     Never raises: unexpected failures degrade to deterministic parsing with
-    status ``"ai_failed"``. Only status/category are logged — never resume
-    text, prompts, responses, or keys.
+    status ``"ai_failed"``. Only status/category and the sanitized provider
+    error message are logged — never resume text, prompts, responses, or keys.
     """
     try:
         provider = ai_provider.get_ai_provider()
     except AIProviderError as exc:
-        logger.warning("AI provider unavailable (category=%s); using deterministic parse.", exc.category)
+        logger.warning(
+            "AI provider unavailable (category=%s, error=%s); using deterministic parse.",
+            exc.category, exc,
+        )
         return None, "ai_failed"
 
     if provider is None:
@@ -121,7 +124,10 @@ def run_resume_analysis(raw_text: str) -> tuple[dict | None, str]:
         payload = provider.extract_resume_information(text)
         extraction = AIResumeExtraction.model_validate(payload)
     except AIProviderError as exc:
-        logger.warning("AI extraction failed (category=%s); using deterministic parse.", exc.category)
+        logger.warning(
+            "AI extraction failed (category=%s, error=%s); using deterministic parse.",
+            exc.category, exc,
+        )
         return None, "ai_failed"
     except (ValidationError, ValueError, TypeError):
         logger.warning("AI output failed validation; using deterministic parse.")

@@ -34,11 +34,14 @@ class Settings(BaseSettings):
     # AI resume intelligence. Empty AI_PROVIDER disables AI analysis entirely
     # (resumes are parsed deterministically). "openai" talks to any
     # OpenAI-compatible /chat/completions endpoint via httpx; "mock" is for
-    # development/tests and is refused in production.
+    # development/tests and is refused in production. AI_MODEL and AI_BASE_URL
+    # are intentionally empty by default so the provider factory resolves each
+    # provider's own endpoint/model (OpenAI vs Gemini); set them explicitly to
+    # override the provider default.
     AI_PROVIDER: str = ""
     AI_API_KEY: str = ""
-    AI_MODEL: str = "gpt-4o-mini"
-    AI_BASE_URL: str = "https://api.openai.com/v1"
+    AI_MODEL: str = ""
+    AI_BASE_URL: str = ""
     AI_MAX_RESUME_CHARS: int = 30000
     AI_TIMEOUT_SECONDS: int = 30
 
@@ -81,10 +84,10 @@ class Settings(BaseSettings):
                         "AI_PROVIDER=mock is only for development and tests."
                     )
                 return self
-            if provider not in {"openai"}:
+            if provider not in {"openai", "gemini"}:
                 raise ValueError(
                     f"Unsupported AI_PROVIDER {provider!r}; expected one of: "
-                    "{'openai'}, or leave empty to disable AI analysis."
+                    "{'openai', 'gemini'}, or leave empty to disable AI analysis."
                 )
             if not (self.AI_API_KEY or "").strip():
                 if env == "production":

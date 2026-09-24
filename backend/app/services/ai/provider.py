@@ -29,7 +29,7 @@ from app.services.ai.prompts import build_messages
 
 logger = logging.getLogger("careeros.ai")
 
-SUPPORTED_PROVIDERS = {"openai"}
+SUPPORTED_PROVIDERS = {"openai", "gemini"}
 
 
 def parse_json_payload(content: str) -> dict:
@@ -154,6 +154,10 @@ class MockAIProvider(AIProvider):
         return self._response
 
 
+PROVIDER_GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+GEMINI_DEFAULT_MODEL = "gemini-3.6-flash"
+
+
 def get_ai_provider() -> AIProvider | None:
     """Select the provider from settings, or None when AI is disabled."""
     name = (settings.AI_PROVIDER or "").strip().lower()
@@ -168,6 +172,24 @@ def get_ai_provider() -> AIProvider | None:
             f"Unsupported AI_PROVIDER {name!r}; supported: {sorted(SUPPORTED_PROVIDERS or [])}"
         )
 
+    base_url = (settings.AI_BASE_URL or "").strip()
+    model = (settings.AI_MODEL or "").strip()
+
+    if name == "gemini":
+        # Google's OpenAI-compatible chat-completions endpoint. Uses the same
+        # provider class as OpenAI — no separate bespoke provider. If the
+        # operator did not pick a different base URL/model, use Gemini's own
+        # defaults.
+        if not base_url:
+            base_url = PROVIDER_GEMINI_BASE_URL
+        if not model:
+            model = GEMINI_DEFAULT_MODEL
+
+    if not base_url:
+        base_url = "https://api.openai.com/v1"
+    if not model:
+        model = "gpt-4o-mini"
+
     if not (settings.AI_API_KEY or "").strip():
         raise AIConfigurationError(
             "AI_PROVIDER is configured but AI_API_KEY is not set."
@@ -175,7 +197,7 @@ def get_ai_provider() -> AIProvider | None:
 
     return OpenAICompatibleProvider(
         api_key=settings.AI_API_KEY,
-        model=settings.AI_MODEL,
-        base_url=settings.AI_BASE_URL,
+        model=model,
+        base_url=base_url,
         timeout_seconds=settings.AI_TIMEOUT_SECONDS,
     )

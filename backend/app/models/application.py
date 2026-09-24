@@ -43,6 +43,29 @@ class UserPreference(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+
+    # --- Legacy columns (kept for backward compat) ---
     preferred_location = Column(String, nullable=True)
     preferred_work_mode = Column(String, nullable=True)
     preferred_job_type = Column(String, nullable=True)
+
+    # --- Phase 9: JSON-encoded list[str] fields ---
+    # e.g. preferred_roles = '["Data Analyst", "BI Analyst"]'
+    preferred_roles = Column(String, nullable=True)
+    preferred_skills = Column(String, nullable=True)
+    preferred_work_modes = Column(String, nullable=True)
+    preferred_employment_types = Column(String, nullable=True)
+    preferred_industries = Column(String, nullable=True)
+
+    # Salary range (stored as strings to avoid float edge cases)
+    salary_min = Column(String, nullable=True)
+    salary_max = Column(String, nullable=True)
+    currency = Column(String, nullable=True, default="USD")
+
+    # Career level: entry | junior | mid | senior | lead
+    career_level = Column(String, nullable=True)
+
+    # Relocation willingness stored as "true"/"false"/NULL for SQLite compat
+    open_to_relocate = Column(String, nullable=True)
+
+    user = relationship("User", back_populates="preferences")

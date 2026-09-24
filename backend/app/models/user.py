@@ -17,3 +17,6 @@ class User(Base):
     resumes = relationship("Resume", back_populates="user")
     saved_jobs = relationship("SavedJob", back_populates="user")
     applications = relationship("Application", back_populates="user")
+    # Phase 9: 1:1 relationships (uselist=False — each user has at most one row)
+    profile = relationship("UserProfile", back_populates="user", uselist=False)
+    preferences = relationship("UserPreference", back_populates="user", uselist=False)
