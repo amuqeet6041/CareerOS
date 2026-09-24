@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/shared/Button";
 import { useAuth } from "@/hooks/useAuth";
 
+const INPUT_CLASS =
+  "w-full rounded-xl border border-line bg-canvas px-3.5 py-2.5 text-sm text-navy placeholder:text-muted/70 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20";
+
 export default function LoginForm() {
   const router = useRouter();
   const { signIn } = useAuth();
@@ -34,28 +37,34 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm font-medium text-navy">Email</label>
+        <label className="mb-1.5 block text-xs font-medium text-navy/80">
+          Email
+        </label>
         <input
           type="email"
           name="email"
           value={form.email}
           onChange={handleChange}
           required
-          className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          autoComplete="email"
+          className={INPUT_CLASS}
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium text-navy">Password</label>
+        <label className="mb-1.5 block text-xs font-medium text-navy/80">
+          Password
+        </label>
         <input
           type="password"
           name="password"
           value={form.password}
           onChange={handleChange}
           required
-          className="w-full rounded-md border border-border px-3 py-2 text-sm focus:border-accent focus:outline-none"
+          autoComplete="current-password"
+          className={INPUT_CLASS}
         />
       </div>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="text-sm text-danger">{error}</p> : null}
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? "Logging in..." : "Log in"}
       </Button>

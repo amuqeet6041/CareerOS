@@ -9,7 +9,7 @@ export default function SkillsList({ skills = [] }) {
           {skills.map((skill, idx) => (
             <span
               key={skill?.id ?? idx}
-              className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
+              className="rounded-full border border-accent/15 bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
             >
               {skill?.name ?? skill}
             </span>

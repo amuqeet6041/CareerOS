@@ -46,7 +46,7 @@ export default function JobPagination({ page = 1, totalPages = 1, onPageChange }
         aria-label="Previous page"
         disabled={page <= 1}
         onClick={() => go(page - 1)}
-        className={`${buttonClass} border border-border bg-white text-navy disabled:cursor-not-allowed disabled:opacity-40`}
+        className={`${buttonClass} border border-line bg-surface text-navy hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-40`}
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
@@ -69,8 +69,8 @@ export default function JobPagination({ page = 1, totalPages = 1, onPageChange }
             onClick={() => go(item)}
             className={
               item === page
-                ? `${buttonClass} bg-accent text-white`
-                : `${buttonClass} border border-border bg-white text-navy hover:bg-surface`
+                ? `${buttonClass} bg-primary text-white`
+                : `${buttonClass} border border-line bg-surface text-navy hover:bg-elevated`
             }
           >
             {item}
@@ -83,7 +83,7 @@ export default function JobPagination({ page = 1, totalPages = 1, onPageChange }
         aria-label="Next page"
         disabled={page >= totalPages}
         onClick={() => go(page + 1)}
-        className={`${buttonClass} border border-border bg-white text-navy disabled:cursor-not-allowed disabled:opacity-40`}
+        className={`${buttonClass} border border-line bg-surface text-navy hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-40`}
       >
         <ChevronRight className="h-4 w-4" />
       </button>

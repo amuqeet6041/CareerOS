@@ -68,7 +68,7 @@ export default function JobDetailView({ jobId }) {
   if (status === "loading") {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
-        <div className="h-4 w-24 animate-pulse rounded bg-border" />
+        <div className="h-4 w-24 animate-pulse rounded bg-elevated-strong" />
         <div className="mt-6">
           <JobDetailSkeleton />
         </div>
@@ -85,7 +85,7 @@ export default function JobDetailView({ jobId }) {
           action={
             <Link
               href="/jobs"
-              className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-light"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent-light"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               Browse all jobs
@@ -117,7 +117,7 @@ export default function JobDetailView({ jobId }) {
       </Link>
 
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <article className="rounded-lg border border-border bg-white p-6">
+        <article className="rounded-lg border border-line bg-surface p-6">
           <p className="text-xs font-medium uppercase tracking-wide text-navy/50">
             {job.company}
           </p>
@@ -154,7 +154,7 @@ export default function JobDetailView({ jobId }) {
                 {job.skills.map((skill) => (
                   <span
                     key={skill.skill_name}
-                    className="rounded-full bg-surface px-3 py-1 text-xs font-medium text-navy"
+                    className="rounded-full bg-elevated px-3 py-1 text-xs font-medium text-navy"
                   >
                     {skill.skill_name}
                   </span>
@@ -176,7 +176,7 @@ export default function JobDetailView({ jobId }) {
             </div>
           ) : null}
 
-          <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-border/70 pt-5 sm:grid-cols-3">
+          <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-line-subtle pt-5 sm:grid-cols-3">
             <MetaItem label="Source" value={humanizeLabel(job.source)} />
             {job.posted_at ? (
               <MetaItem label="Posted" value={formatDate(job.posted_at)} />
@@ -191,7 +191,7 @@ export default function JobDetailView({ jobId }) {
         </article>
 
         <div className="space-y-6 lg:sticky lg:top-8">
-          <section className="rounded-lg border border-border bg-white p-5">
+          <section className="rounded-lg border border-line bg-surface p-5">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-navy/50">
               Apply
             </h2>

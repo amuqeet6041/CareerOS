@@ -4,22 +4,22 @@
 
 export default function DashboardSkeleton() {
   return (
-    <div className="animate-pulse space-y-6" role="status" aria-label="Loading dashboard">
+    <div className="space-y-6" role="status" aria-label="Loading dashboard">
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="space-y-6 xl:col-span-2">
-          <div className="h-40 rounded-2xl bg-border/40" />
-          <div className="h-32 rounded-2xl bg-border/40" />
+          <div className="skeleton h-40 rounded-2xl" />
+          <div className="skeleton h-32 rounded-2xl" />
         </div>
-        <div className="h-40 rounded-2xl bg-border/40" />
+        <div className="skeleton h-40 rounded-2xl" />
       </div>
-      <div className="h-80 rounded-2xl bg-border/40" />
+      <div className="skeleton h-80 rounded-2xl" />
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="h-56 rounded-2xl bg-border/40" />
-        <div className="h-56 rounded-2xl bg-border/40" />
+        <div className="skeleton h-56 rounded-2xl" />
+        <div className="skeleton h-56 rounded-2xl" />
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="h-40 rounded-2xl bg-border/40" />
-        <div className="h-40 rounded-2xl bg-border/40" />
+        <div className="skeleton h-40 rounded-2xl" />
+        <div className="skeleton h-40 rounded-2xl" />
       </div>
     </div>
   );

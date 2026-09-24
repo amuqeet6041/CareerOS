@@ -24,7 +24,7 @@ function ScoreRow({ label, percentage }) {
         )}
       </div>
       <div
-        className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-border"
+        className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-line"
         role="img"
         aria-label={pct ? `${label}: ${pct}` : `${label}: not enough data`}
       >
@@ -52,7 +52,7 @@ export default function MatchScore({ match }) {
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <div
-          className="flex h-16 w-16 items-center justify-center rounded-2xl bg-surface text-xl font-bold text-navy"
+          className="flex h-16 w-16 items-center justify-center rounded-2xl bg-elevated text-xl font-bold text-navy"
           aria-label={overall ? `Overall match ${overall}` : "Overall match not available"}
         >
           {overall ?? "—"}

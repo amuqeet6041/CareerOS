@@ -1,11 +1,11 @@
 export function priorityStyles(priority) {
   switch (priority) {
     case "high":
-      return "bg-red-50 text-red-600";
+      return "bg-danger/10 text-danger";
     case "medium":
-      return "bg-amber-50 text-amber-700";
+      return "bg-warning/10 text-warning";
     default:
-      return "bg-slate-100 text-slate-500";
+      return "bg-elevated text-muted";
   }
 }
 

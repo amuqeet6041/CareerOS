@@ -34,7 +34,7 @@ export default function SavedJobsSummary({
           action={
             <Link
               href="/jobs"
-              className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light"
+              className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-glow-primary transition-colors hover:bg-accent-light"
             >
               Browse jobs
             </Link>
@@ -52,7 +52,7 @@ export default function SavedJobsSummary({
               <li key={item.job_id}>
                 <Link
                   href={`/jobs/${item.job_id}`}
-                  className="block rounded-xl border border-border p-3 transition-colors hover:bg-surface"
+                  className="block rounded-xl border border-line p-3 transition-colors hover:bg-elevated"
                 >
                   <p className="truncate text-sm font-medium text-navy">
                     {item.job?.title ?? `Job #${item.job_id}`}

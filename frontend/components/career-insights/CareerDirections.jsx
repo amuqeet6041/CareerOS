@@ -9,8 +9,8 @@ function SkillChips({ skills, missing }) {
           key={`${missing ? "missing" : "support"}-${skill}`}
           className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
             missing
-              ? "bg-amber-50 text-amber-700"
-              : "bg-accent/10 text-accent"
+              ? "border border-warning/30 bg-warning/10 text-warning"
+              : "border border-accent/15 bg-accent/10 text-accent"
           }`}
         >
           {skill}
@@ -36,12 +36,12 @@ export default function CareerDirections({ directions }) {
           {directions.map((direction) => (
             <div
               key={direction.title}
-              className="rounded-xl border border-border bg-surface p-4"
+              className="rounded-xl border border-line bg-surface p-4"
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="text-sm font-semibold text-navy">{direction.title}</p>
                 {direction.average_match != null ? (
-                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-700">
+                  <span className="rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
                     {direction.average_match}% match
                   </span>
                 ) : null}

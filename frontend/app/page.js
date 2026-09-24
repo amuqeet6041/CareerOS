@@ -88,103 +88,116 @@ const STEPS = [
   },
 ];
 
+const INDICATORS = [
+  {
+    icon: FileText,
+    value: "PDF · DOCX",
+    label: "Resume formats parsed",
+  },
+  {
+    icon: Target,
+    value: "0–100",
+    label: "Transparent match scoring",
+  },
+  {
+    icon: Search,
+    value: "Live",
+    label: "Opportunity discovery",
+  },
+  {
+    icon: TrendingUp,
+    value: "Actionable",
+    label: "Skill-gap insights",
+  },
+];
+
 function MatchPreview() {
   return (
     <div className="relative mx-auto w-full max-w-[520px]">
       {/* Glow */}
-      <div className="absolute -inset-10 rounded-full bg-blue-500/10 blur-3xl" />
+      <div className="absolute -inset-10 rounded-full bg-primary/10 blur-3xl" />
 
       {/* Main dashboard card */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0B1B30]/95 p-4 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-5">
+      <div className="relative animate-fade-in overflow-hidden rounded-3xl border border-line bg-surface/95 p-4 shadow-card-hover backdrop-blur-xl sm:p-5">
         {/* Window header */}
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+        <div className="flex items-center justify-between border-b border-line-subtle pb-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/15">
-              <Sparkles className="h-4 w-4 text-blue-400" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15">
+              <Sparkles className="h-4 w-4 text-accent-light" />
             </div>
 
             <div>
-              <p className="text-xs font-semibold text-white">
-                CareerOS Match
-              </p>
-              <p className="text-[10px] text-slate-500">
-                AI Career Analysis
-              </p>
+              <p className="text-xs font-semibold text-navy">CareerOS Match</p>
+              <p className="text-[10px] text-muted">AI Career Analysis</p>
             </div>
           </div>
 
           <div className="flex gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-slate-600" />
-            <span className="h-2 w-2 rounded-full bg-slate-600" />
-            <span className="h-2 w-2 rounded-full bg-slate-600" />
+            <span className="h-2 w-2 rounded-full bg-line" />
+            <span className="h-2 w-2 rounded-full bg-line" />
+            <span className="h-2 w-2 rounded-full bg-line" />
           </div>
         </div>
 
         {/* Profile */}
         <div className="mt-5 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-400">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-accent to-accent-light">
             <UserRound className="h-5 w-5 text-white" />
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-white">
-              Your Career Profile
-            </p>
-            <p className="text-xs text-slate-500">
-              AI analyzed profile
-            </p>
+            <p className="text-sm font-semibold text-navy">Your Career Profile</p>
+            <p className="text-xs text-muted">AI analyzed profile</p>
           </div>
 
-          <div className="ml-auto rounded-full bg-green-500/10 px-2.5 py-1 text-[10px] font-semibold text-green-400">
+          <div className="ml-auto rounded-full bg-success/10 px-2.5 py-1 text-[10px] font-semibold text-success">
             Analyzed
           </div>
         </div>
 
         {/* Match score */}
-        <div className="mt-5 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
+        <div className="mt-5 rounded-2xl border border-line bg-elevated p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-medium text-slate-400">
-                Overall Job Match
-              </p>
+              <p className="text-xs font-medium text-muted">Overall Job Match</p>
 
-              <p className="mt-1 text-3xl font-bold tracking-tight text-white">
+              <p className="mt-1 text-3xl font-bold tracking-tight text-navy">
                 92%
               </p>
             </div>
 
-            <div className="relative flex h-16 w-16 items-center justify-center rounded-full border-[5px] border-blue-500/20">
-              <div className="absolute inset-[-5px] rounded-full border-[5px] border-transparent border-t-blue-400 border-r-blue-400" />
-              <span className="text-xs font-bold text-blue-300">92%</span>
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-full border-[5px] border-accent/20">
+              <div className="absolute inset-[-5px] rounded-full border-[5px] border-transparent border-t-accent border-r-accent" />
+              <span className="text-xs font-bold text-accent">92%</span>
             </div>
           </div>
 
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[0.06]">
-            <div className="h-full w-[92%] rounded-full bg-gradient-to-r from-blue-600 to-blue-400" />
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-line/40">
+            <div className="h-full w-[92%] rounded-full bg-gradient-to-r from-accent to-accent-light" />
           </div>
         </div>
 
         {/* Skills */}
         <div className="mt-4 grid grid-cols-2 gap-3">
-          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">
+          <div className="rounded-xl border border-line bg-elevated p-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted">
               Skill Match
             </p>
             <div className="mt-2 flex items-end justify-between">
-              <span className="text-xl font-bold text-white">95%</span>
-              <span className="text-[10px] font-medium text-green-400">
+              <span className="text-xl font-bold text-navy">95%</span>
+              <span className="text-[10px] font-medium text-success">
                 Strong
               </span>
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">
+          <div className="rounded-xl border border-line bg-elevated p-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted">
               Qualification
             </p>
             <div className="mt-2 flex items-end justify-between">
-              <span className="text-xl font-bold text-white">89%</span>
-              <span className="text-[10px] font-medium text-blue-400">
+              <span className="text-xl font-bold text-navy">89%</span>
+              <span className="text-[10px] font-medium text-accent">
                 High
               </span>
             </div>
@@ -193,7 +206,7 @@ function MatchPreview() {
 
         {/* Skills tags */}
         <div className="mt-4">
-          <p className="text-[10px] uppercase tracking-wider text-slate-500">
+          <p className="text-[10px] uppercase tracking-wider text-muted">
             Detected Skills
           </p>
 
@@ -201,7 +214,7 @@ function MatchPreview() {
             {["Python", "SQL", "Power BI", "Data Analysis"].map((skill) => (
               <span
                 key={skill}
-                className="rounded-lg border border-blue-400/10 bg-blue-500/[0.08] px-2.5 py-1.5 text-[10px] font-medium text-blue-300"
+                className="rounded-lg border border-accent/15 bg-accent/10 px-2.5 py-1.5 text-[10px] font-medium text-accent"
               >
                 {skill}
               </span>
@@ -211,15 +224,15 @@ function MatchPreview() {
       </div>
 
       {/* Floating badge */}
-      <div className="absolute -right-3 -top-4 hidden rounded-2xl border border-white/10 bg-[#10243D] px-4 py-3 shadow-xl sm:block">
+      <div className="absolute -right-3 -top-4 hidden animate-fade-in-up rounded-2xl border border-line bg-surface px-4 py-3 shadow-card-hover [animation-delay:200ms] sm:block">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-500/10">
-            <Zap className="h-3.5 w-3.5 text-green-400" />
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-success/10">
+            <Zap className="h-3.5 w-3.5 text-success" />
           </div>
 
           <div>
-            <p className="text-[10px] text-slate-500">Match Found</p>
-            <p className="text-xs font-semibold text-white">
+            <p className="text-[10px] text-muted">Match Found</p>
+            <p className="text-xs font-semibold text-navy">
               High compatibility
             </p>
           </div>
@@ -231,59 +244,50 @@ function MatchPreview() {
 
 export default function HomePage() {
   return (
-    <main className="overflow-hidden bg-white">
+    <main className="overflow-hidden bg-canvas">
       <Navbar />
 
       {/* =========================================================
           HERO
       ========================================================= */}
-      <section className="relative min-h-[760px] overflow-hidden bg-[#07111F] pt-32 sm:pt-36">
+      <section className="relative min-h-[720px] overflow-hidden bg-canvas pt-32 sm:pt-36">
         {/* Background effects */}
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-1/2 top-[-300px] h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-[120px]" />
-
-          <div className="absolute right-[-200px] top-[200px] h-[400px] w-[400px] rounded-full bg-blue-600/[0.06] blur-[100px]" />
-
-          <div className="absolute bottom-[-200px] left-[-150px] h-[400px] w-[400px] rounded-full bg-sky-500/[0.05] blur-[100px]" />
+          <div className="absolute left-1/2 top-[-300px] h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
+          <div className="absolute right-[-200px] top-[200px] h-[400px] w-[400px] rounded-full bg-primary/8 blur-[100px]" />
+          <div className="absolute bottom-[-200px] left-[-150px] h-[400px] w-[400px] rounded-full bg-info/5 blur-[100px]" />
         </div>
 
         {/* Grid */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.035]"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)",
-            backgroundSize: "50px 50px",
-          }}
-        />
+        <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.5] [mask-image:radial-gradient(ellipse_at_center,black_25%,transparent_75%)]" />
 
         <div className="relative mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8 lg:pb-32">
           <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
             {/* Hero copy */}
             <div className="max-w-2xl">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-500/[0.08] px-3.5 py-2 text-xs font-medium text-blue-300">
+              <div className="mb-6 inline-flex animate-fade-in-up items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3.5 py-2 text-xs font-medium text-gold">
                 <Sparkles className="h-3.5 w-3.5" />
                 AI-powered career intelligence
               </div>
 
-              <h1 className="text-4xl font-bold leading-[1.08] tracking-[-0.035em] text-white sm:text-5xl lg:text-6xl">
+              <h1 className="animate-fade-in-up text-4xl font-bold leading-[1.08] tracking-[-0.035em] text-navy [animation-delay:60ms] sm:text-5xl lg:text-6xl">
                 Your career.
                 <br />
-                <span className="bg-gradient-to-r from-blue-400 via-sky-400 to-blue-300 bg-clip-text text-transparent">
+                <span className="text-gradient-blue">
                   Understood by AI.
                 </span>
               </h1>
 
-              <p className="mt-6 max-w-xl text-base leading-7 text-slate-400 sm:text-lg sm:leading-8">
+              <p className="mt-6 max-w-xl animate-fade-in-up text-base leading-7 text-ink-muted [animation-delay:120ms] sm:text-lg sm:leading-8">
                 Upload your resume, discover relevant opportunities, and
                 understand exactly how your skills and qualifications match
                 real jobs.
               </p>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-8 flex animate-fade-in-up flex-col gap-3 [animation-delay:180ms] sm:flex-row">
                 <Link
                   href="/register"
-                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-[#3B82F6] px-6 py-3.5 text-sm font-semibold text-white shadow-xl shadow-blue-500/20 transition-all duration-200 hover:bg-[#2563EB] hover:shadow-blue-500/30"
+                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-white shadow-glow-primary transition-all duration-200 hover:bg-accent-light"
                 >
                   Get Started
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -291,7 +295,7 @@ export default function HomePage() {
 
                 <Link
                   href="/jobs"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-slate-200 transition-all duration-200 hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-elevated px-6 py-3.5 text-sm font-semibold text-navy transition-all duration-200 hover:border-line hover:bg-elevated-strong"
                 >
                   Explore Jobs
                   <ArrowUpRight className="h-4 w-4" />
@@ -299,7 +303,7 @@ export default function HomePage() {
               </div>
 
               {/* Trust points */}
-              <div className="mt-9 flex flex-wrap gap-x-6 gap-y-3">
+              <div className="mt-9 flex animate-fade-in-up flex-wrap gap-x-6 gap-y-3 [animation-delay:240ms]">
                 {[
                   "AI resume analysis",
                   "Clear match scores",
@@ -307,9 +311,9 @@ export default function HomePage() {
                 ].map((item) => (
                   <div
                     key={item}
-                    className="flex items-center gap-2 text-xs text-slate-500"
+                    className="flex items-center gap-2 text-xs text-muted"
                   >
-                    <CheckCircle2 className="h-3.5 w-3.5 text-blue-400" />
+                    <CheckCircle2 className="h-3.5 w-3.5 text-accent-light" />
                     {item}
                   </div>
                 ))}
@@ -324,50 +328,89 @@ export default function HomePage() {
         </div>
 
         {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-canvas to-transparent" />
       </section>
 
+      {/* =========================================================
+          INDICATORS
+      ========================================================= */}
+      <section className="relative bg-canvas pb-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-4 rounded-2xl border border-line bg-surface p-6 shadow-card sm:grid-cols-2 sm:p-8 lg:grid-cols-4">
+            {INDICATORS.map((indicator, index) => {
+              const Icon = indicator.icon;
 
-  
+              return (
+                <div
+                  key={indicator.label}
+                  className="animate-fade-in-up flex items-center gap-3.5"
+                  style={{ animationDelay: `${index * 60}ms` }}
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                    <Icon className="h-5 w-5" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-semibold text-navy">
+                      {indicator.value}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {indicator.label}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* =========================================================
           FEATURES
       ========================================================= */}
-      <section id="features" className="bg-slate-50 py-20 sm:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section
+        id="features"
+        className="relative overflow-hidden border-y border-line bg-elevated/60 py-20 sm:py-24"
+      >
+        <div className="pointer-events-none absolute left-[-150px] top-20 h-[360px] w-[360px] rounded-full bg-primary/5 blur-3xl" />
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
-            <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#3B82F6]">
+            <span className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
               Platform
             </span>
 
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#07111F] sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
               Everything you need to navigate your career.
             </h2>
 
-            <p className="mt-4 text-base leading-7 text-slate-500">
+            <p className="mt-4 text-base leading-7 text-muted">
               From understanding your resume to discovering opportunities and
               tracking your applications, CareerOS brings the process together.
             </p>
           </div>
 
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map((feature) => {
+            {FEATURES.map((feature, index) => {
               const Icon = feature.icon;
 
               return (
                 <div
                   key={feature.title}
-                  className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/[0.06]"
+                  className="group relative animate-fade-in-up overflow-hidden rounded-2xl border border-line bg-surface p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/30 hover:shadow-card-hover"
+                  style={{ animationDelay: `${index * 70}ms` }}
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#3B82F6] transition-colors group-hover:bg-blue-500 group-hover:text-white">
+                  <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-primary/5 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100" />
+
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-accent transition-colors duration-300 group-hover:bg-primary group-hover:text-white">
                     <Icon className="h-5 w-5" />
                   </div>
 
-                  <h3 className="mt-5 text-base font-semibold text-[#07111F]">
+                  <h3 className="mt-5 text-base font-semibold text-navy">
                     {feature.title}
                   </h3>
 
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                  <p className="mt-2 text-sm leading-6 text-muted">
                     {feature.description}
                   </p>
                 </div>
@@ -380,18 +423,18 @@ export default function HomePage() {
       {/* =========================================================
           HOW IT WORKS
       ========================================================= */}
-      <section id="how-it-works" className="bg-white py-20 sm:py-24">
+      <section id="how-it-works" className="bg-canvas py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#3B82F6]">
+            <span className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
               Simple process
             </span>
 
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#07111F] sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
               From resume to opportunity.
             </h2>
 
-            <p className="mt-4 text-base leading-7 text-slate-500">
+            <p className="mt-4 text-base leading-7 text-muted">
               A simple workflow designed to turn your existing experience into
               actionable career opportunities.
             </p>
@@ -399,26 +442,30 @@ export default function HomePage() {
 
           <div className="relative mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {/* Connector */}
-            <div className="pointer-events-none absolute left-[12%] right-[12%] top-9 hidden h-px bg-slate-200 lg:block" />
+            <div className="pointer-events-none absolute left-[12%] right-[12%] top-9 hidden h-px bg-gradient-to-r from-accent/10 via-accent/40 to-accent/10 lg:block" />
 
-            {STEPS.map((step) => {
+            {STEPS.map((step, index) => {
               const Icon = step.icon;
 
               return (
-                <div key={step.number} className="relative">
-                  <div className="relative z-10 flex h-[72px] w-[72px] items-center justify-center rounded-2xl border border-blue-100 bg-white text-[#3B82F6] shadow-sm">
+                <div
+                  key={step.number}
+                  className="relative animate-fade-in-up"
+                  style={{ animationDelay: `${index * 90}ms` }}
+                >
+                  <div className="relative z-10 flex h-[72px] w-[72px] items-center justify-center rounded-2xl border border-accent/25 bg-surface text-accent shadow-card transition-transform duration-300 hover:-translate-y-1">
                     <Icon className="h-6 w-6" />
 
-                    <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#07111F] text-[9px] font-bold text-white">
+                    <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-white">
                       {step.number}
                     </span>
                   </div>
 
-                  <h3 className="mt-5 text-base font-semibold text-[#07111F]">
+                  <h3 className="mt-5 text-base font-semibold text-navy">
                     {step.title}
                   </h3>
 
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                  <p className="mt-2 text-sm leading-6 text-muted">
                     {step.description}
                   </p>
                 </div>
@@ -429,22 +476,25 @@ export default function HomePage() {
       </section>
 
       {/* =========================================================
-          MATCH SCORE SECTION
+          AI MATCHING SECTION
       ========================================================= */}
-      <section className="bg-[#07111F] py-20 sm:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden bg-elevated/60 py-20 sm:py-24">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
+        <div className="pointer-events-none absolute bottom-[-200px] right-[-120px] h-[400px] w-[400px] rounded-full bg-primary/8 blur-3xl" />
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
             {/* Copy */}
             <div>
-              <span className="text-xs font-bold uppercase tracking-[0.18em] text-blue-400">
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-gold">
                 Transparent matching
               </span>
 
-              <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              <h2 className="mt-4 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
                 Know why a job matches you.
               </h2>
 
-              <p className="mt-5 max-w-xl text-base leading-7 text-slate-400">
+              <p className="mt-5 max-w-xl text-base leading-7 text-ink-muted">
                 Instead of simply showing job listings, CareerOS gives you
                 understandable indicators based on your profile.
               </p>
@@ -468,14 +518,14 @@ export default function HomePage() {
                   },
                 ].map((item) => (
                   <div key={item.title} className="flex gap-3">
-                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
 
                     <div>
-                      <h3 className="text-sm font-semibold text-white">
+                      <h3 className="text-sm font-semibold text-navy">
                         {item.title}
                       </h3>
 
-                      <p className="mt-1 text-sm leading-6 text-slate-500">
+                      <p className="mt-1 text-sm leading-6 text-muted">
                         {item.description}
                       </p>
                     </div>
@@ -485,60 +535,58 @@ export default function HomePage() {
             </div>
 
             {/* Score cards */}
-            <div className="rounded-3xl border border-white/10 bg-[#0B1B30] p-5 shadow-2xl sm:p-7">
+            <div className="rounded-3xl border border-line bg-surface p-5 shadow-card-hover sm:p-7">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-medium text-slate-500">
+                  <p className="text-xs font-medium text-muted">
                     Recommended Opportunity
                   </p>
 
-                  <h3 className="mt-1 text-lg font-semibold text-white">
+                  <h3 className="mt-1 text-lg font-semibold text-navy">
                     Data Analyst
                   </h3>
                 </div>
 
-                <span className="rounded-full bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-400">
+                <span className="rounded-full bg-success/10 px-3 py-1.5 text-xs font-semibold text-success">
                   Strong Match
                 </span>
               </div>
 
               <div className="mt-7 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
-                  <p className="text-xs text-slate-500">Skill Match</p>
+                <div className="rounded-2xl border border-line bg-elevated p-5">
+                  <p className="text-xs text-muted">Skill Match</p>
 
                   <div className="mt-2 flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-white">94</span>
-                    <span className="text-sm text-slate-500">%</span>
+                    <span className="text-4xl font-bold text-navy">94</span>
+                    <span className="text-sm text-muted">%</span>
                   </div>
 
-                  <div className="mt-4 h-1.5 rounded-full bg-white/[0.06]">
-                    <div className="h-full w-[94%] rounded-full bg-blue-500" />
+                  <div className="mt-4 h-1.5 rounded-full bg-line/50">
+                    <div className="h-full w-[94%] rounded-full bg-accent" />
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
-                  <p className="text-xs text-slate-500">
-                    Qualification Match
-                  </p>
+                <div className="rounded-2xl border border-line bg-elevated p-5">
+                  <p className="text-xs text-muted">Qualification Match</p>
 
                   <div className="mt-2 flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-white">88</span>
-                    <span className="text-sm text-slate-500">%</span>
+                    <span className="text-4xl font-bold text-navy">88</span>
+                    <span className="text-sm text-muted">%</span>
                   </div>
 
-                  <div className="mt-4 h-1.5 rounded-full bg-white/[0.06]">
-                    <div className="h-full w-[88%] rounded-full bg-sky-400" />
+                  <div className="mt-4 h-1.5 rounded-full bg-line/50">
+                    <div className="h-full w-[88%] rounded-full bg-accent-light" />
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
+              <div className="mt-4 rounded-2xl border border-line bg-elevated p-5">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-slate-400">
+                  <p className="text-xs font-medium text-muted">
                     Matching Skills
                   </p>
 
-                  <span className="text-xs text-green-400">
+                  <span className="text-xs text-success">
                     8 skills matched
                   </span>
                 </div>
@@ -556,7 +604,7 @@ export default function HomePage() {
                   ].map((skill) => (
                     <span
                       key={skill}
-                      className="rounded-lg bg-green-500/[0.08] px-2.5 py-1.5 text-[10px] font-medium text-green-300"
+                      className="rounded-lg bg-accent/10 px-2.5 py-1.5 text-[10px] font-medium text-accent"
                     >
                       {skill}
                     </span>
@@ -571,19 +619,19 @@ export default function HomePage() {
       {/* =========================================================
           FINAL CTA
       ========================================================= */}
-      <section className="relative overflow-hidden bg-white py-20 sm:py-28">
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[350px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/[0.06] blur-[100px]" />
+      <section className="relative overflow-hidden bg-canvas py-20 sm:py-28">
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[350px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/8 blur-[100px]" />
 
         <div className="relative mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-[#3B82F6]">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent">
             <Sparkles className="h-6 w-6" />
           </div>
 
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-[#07111F] sm:text-4xl">
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-navy sm:text-4xl">
             Ready to understand your next career move?
           </h2>
 
-          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-500">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-muted">
             Create your CareerOS profile, upload your resume, and start
             discovering opportunities built around your skills.
           </p>
@@ -591,7 +639,7 @@ export default function HomePage() {
           <div className="mt-8">
             <Link
               href="/register"
-              className="group inline-flex items-center gap-2 rounded-xl bg-[#3B82F6] px-7 py-3.5 text-sm font-semibold text-white shadow-xl shadow-blue-500/20 transition-all duration-200 hover:bg-[#2563EB] hover:shadow-blue-500/30"
+              className="group inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-sm font-semibold text-white shadow-glow-primary transition-all duration-200 hover:bg-accent-light"
             >
               Create Free Account
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

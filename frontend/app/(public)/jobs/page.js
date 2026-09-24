@@ -22,7 +22,7 @@ export default function PublicJobsPage() {
                   aria-hidden="true"
                   className="flex w-full gap-2"
                 >
-                  <div className="h-12 flex-1 animate-pulse rounded-xl border border-white/15 bg-white/10" />
+                  <div className="h-12 flex-1 animate-pulse rounded-xl border border-line bg-elevated" />
                   <div className="h-12 w-28 animate-pulse rounded-xl bg-accent/60" />
                 </div>
               </JobHero>

@@ -97,7 +97,7 @@ export default function JobsExplorer({ variant = "public" }) {
     <>
       {variant === "public" ? (
         <JobHero>
-          <p className="mb-3 -mt-2 text-sm leading-6 text-slate-300">
+          <p className="mb-3 -mt-2 text-sm leading-6 text-ink-muted">
             {isAuthenticated
               ? "Find roles that match your skills and experience."
               : "Browse live opportunities. Sign in to see your personalized match score for every job."}
@@ -149,7 +149,7 @@ export default function JobsExplorer({ variant = "public" }) {
               id="jobs-sort"
               value={query.sort}
               onChange={handleSort}
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy outline-none transition-colors focus:border-accent"
+              className="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-navy outline-none transition-colors focus:border-accent"
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -160,7 +160,7 @@ export default function JobsExplorer({ variant = "public" }) {
             <button
               type="button"
               onClick={() => setMobileFiltersOpen(true)}
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-navy transition-colors hover:bg-surface lg:hidden"
+              className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-navy transition-colors hover:bg-elevated lg:hidden"
             >
               <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
               Filters
@@ -197,7 +197,7 @@ export default function JobsExplorer({ variant = "public" }) {
                   <button
                     type="button"
                     onClick={handleClear}
-                    className="rounded-md border border-border px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-surface"
+                    className="rounded-md border border-line px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-elevated"
                   >
                     Clear filters
                   </button>

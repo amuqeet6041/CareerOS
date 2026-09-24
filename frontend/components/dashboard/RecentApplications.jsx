@@ -33,7 +33,7 @@ export default function RecentApplications({
           action={
             <Link
               href="/jobs"
-              className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light"
+              className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-glow-primary transition-colors hover:bg-accent-light"
             >
               Browse jobs
             </Link>
@@ -44,7 +44,7 @@ export default function RecentApplications({
           {recent.map((app) => (
             <li
               key={app.id}
-              className="flex items-center justify-between gap-3 rounded-xl border border-border p-3"
+              className="flex items-center justify-between gap-3 rounded-xl border border-line p-3"
             >
               <div className="min-w-0">
                 <p className="truncate text-xs font-medium uppercase tracking-wide text-navy/50">

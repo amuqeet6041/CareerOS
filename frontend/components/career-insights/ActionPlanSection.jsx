@@ -34,9 +34,9 @@ export default function ActionPlanSection({ actionPlan, resumeSuggestions }) {
             {resumeSuggestions.map((suggestion, idx) => (
               <li
                 key={idx}
-                className="flex gap-2 rounded-xl border border-border bg-surface p-3 text-sm text-navy/70"
+                className="flex gap-2 rounded-xl border border-line bg-surface p-3 text-sm text-navy/70"
               >
-                <span className="text-green-600">&check;</span>
+                <span className="text-success">&check;</span>
                 {suggestion}
               </li>
             ))}

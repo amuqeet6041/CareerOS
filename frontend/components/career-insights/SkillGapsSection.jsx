@@ -17,7 +17,7 @@ export default function SkillGapsSection({ skillGaps }) {
           {skillGaps.map((gap) => (
             <li
               key={gap.skill}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface p-3"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface p-3"
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2">

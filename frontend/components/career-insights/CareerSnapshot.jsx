@@ -30,7 +30,7 @@ export default function CareerSnapshot({ summary }) {
           {chips.map((skill, idx) => (
             <span
               key={`${skill}-${idx}`}
-              className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
+              className="rounded-full border border-accent/15 bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
             >
               {skill}
             </span>
@@ -45,7 +45,7 @@ export default function CareerSnapshot({ summary }) {
           {fields.map((field) => (
             <div
               key={field.label}
-              className="rounded-xl border border-border bg-surface p-3"
+              className="rounded-xl border border-line bg-surface p-3"
             >
               <p className="text-xs text-navy/50">{field.label}</p>
               <p className="mt-1 text-sm font-semibold text-navy">{field.value}</p>

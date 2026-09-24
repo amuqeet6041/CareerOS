@@ -17,7 +17,7 @@ export default function DashboardLayout({ children }) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-surface">
+      <div className="flex min-h-screen items-center justify-center bg-canvas">
         <Loading label="Loading your dashboard..." />
       </div>
     );

@@ -66,7 +66,7 @@ export default function StudentDashboard() {
         action={
           <Link
             href="/login"
-            className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light"
+            className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-glow-primary transition-colors hover:bg-accent-light"
           >
             Sign in
           </Link>

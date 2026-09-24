@@ -31,10 +31,10 @@ export default function JobFilters({
   };
 
   const inputClass =
-    "w-full rounded-md border border-border bg-white px-3 py-2 text-sm text-navy outline-none transition-colors focus:border-accent";
+    "w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-navy outline-none transition-colors focus:border-accent";
 
   return (
-    <aside className="space-y-4 rounded-lg border border-border bg-white p-4">
+    <aside className="space-y-4 rounded-lg border border-line bg-surface p-4">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-navy">Filters</h2>
         <button
@@ -175,7 +175,7 @@ export default function JobFilters({
       <button
         type="button"
         onClick={handleApply}
-        className="w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light"
+        className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light"
       >
         Apply Filters
       </button>

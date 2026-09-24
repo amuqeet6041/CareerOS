@@ -19,7 +19,7 @@ export default function StrengthsSection({ strengths }) {
               className="flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 py-1 pl-3 pr-1"
             >
               <span className="text-sm font-medium text-navy">{strength.skill}</span>
-              <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-semibold text-white">
+              <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-white">
                 {strength.relevance_count}{" "}
                 {strength.relevance_count === 1 ? "job" : "jobs"}
               </span>

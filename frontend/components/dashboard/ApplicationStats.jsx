@@ -38,7 +38,7 @@ export default function ApplicationStats({
           action={
             <Link
               href="/jobs"
-              className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light"
+              className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-glow-primary transition-colors hover:bg-accent-light"
             >
               Browse jobs
             </Link>
@@ -68,7 +68,7 @@ export default function ApplicationStats({
                     <span className="font-medium text-navy">{count}</span>
                   </div>
                   <div
-                    className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-border"
+                    className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-line/40"
                     role="progressbar"
                     aria-valuemin={0}
                     aria-valuemax={total}

@@ -6,7 +6,7 @@ export default function ResumePreview({ fileName, uploadedAt }) {
   }
 
   return (
-    <div className="rounded-md border border-border bg-white p-4">
+    <div className="rounded-2xl border border-line bg-surface p-4 shadow-card">
       <p className="text-sm font-medium text-navy">{fileName}</p>
       {uploadedAt ? (
         <p className="text-xs text-navy/50">Uploaded {uploadedAt}</p>

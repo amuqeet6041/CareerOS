@@ -40,7 +40,7 @@ export default function JobCard({
   const posted = job.posted_at ? formatDate(job.posted_at) : "";
 
   return (
-    <article className="flex flex-col rounded-lg border border-border bg-white p-5 shadow-sm">
+    <article className="flex flex-col rounded-lg border border-line bg-surface p-5 shadow-card transition-shadow hover:shadow-card-hover">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="truncate text-xs font-medium uppercase tracking-wide text-navy/50">
@@ -72,10 +72,10 @@ export default function JobCard({
 
       <MatchPill match={match} loading={matchLoading} />
 
-      <div className="mt-4 flex items-center gap-3 border-t border-border/60 pt-4">
+      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line-subtle pt-4">
         <Link
           href={`/jobs/${job.id}`}
-          className="rounded-md border border-border px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-surface"
+          className="rounded-md border border-line px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-elevated"
         >
           View Job
         </Link>

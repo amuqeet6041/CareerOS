@@ -4,8 +4,8 @@ import { priorityStyles } from "./priority";
 function StatusBanner({ ai }) {
   if (ai.status === "available") {
     return (
-      <div className="rounded-xl border border-green-200 bg-green-50 p-4">
-        <p className="text-sm text-green-800">
+      <div className="rounded-xl border border-success/30 bg-success/10 p-4">
+        <p className="text-sm text-success">
           <span className="font-semibold">AI analysis:</span>{" "}
           {ai.summary || "Personalized explanations from your career data."}
         </p>
@@ -14,8 +14,8 @@ function StatusBanner({ ai }) {
   }
   if (ai.status === "failed") {
     return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-        <p className="text-sm text-amber-800">
+      <div className="rounded-xl border border-warning/30 bg-warning/10 p-4">
+        <p className="text-sm text-warning">
           AI insights temporarily unavailable. Your deterministic analysis above
           remains fully up to date.
         </p>
@@ -23,7 +23,7 @@ function StatusBanner({ ai }) {
     );
   }
   return (
-    <div className="rounded-xl border border-border bg-surface p-4">
+    <div className="rounded-xl border border-line bg-surface p-4">
       <p className="text-sm text-navy/60">
         AI-powered explanations are not configured in this environment. The career
         analysis below is computed deterministically from your resume and the jobs
@@ -49,7 +49,7 @@ export default function AICareerInsights({ ai }) {
                 {ai.career_directions.map((direction) => (
                   <li
                     key={direction.title}
-                    className="rounded-xl border border-border bg-surface p-3"
+                    className="rounded-xl border border-line bg-surface p-3"
                   >
                     <p className="text-sm font-semibold text-navy">{direction.title}</p>
                     {direction.reason ? (
@@ -77,7 +77,7 @@ export default function AICareerInsights({ ai }) {
                 {ai.skill_development.map((item) => (
                   <div
                     key={item.skill}
-                    className="rounded-full border border-border bg-surface py-1 pl-3 pr-1"
+                    className="rounded-full border border-line bg-surface py-1 pl-3 pr-1"
                   >
                     <span className="text-xs font-medium text-navy">{item.skill}</span>
                     <span
@@ -97,7 +97,7 @@ export default function AICareerInsights({ ai }) {
               <ul className="space-y-1.5">
                 {ai.resume_suggestions.map((suggestion, idx) => (
                   <li key={`rs-${idx}`} className="flex gap-2 text-sm text-navy/70">
-                    <span className="text-green-600">&check;</span>
+                    <span className="text-success">&check;</span>
                     {suggestion}
                   </li>
                 ))}

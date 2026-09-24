@@ -27,7 +27,7 @@ export default function RecommendedJobs({
   const browseAction = (
     <Link
       href="/jobs"
-      className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light"
+      className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-glow-primary transition-colors hover:bg-accent-light"
     >
       Browse jobs
     </Link>
@@ -55,7 +55,7 @@ export default function RecommendedJobs({
           action={noResume ? (
             <Link
               href="/student-dashboard/resume"
-              className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light"
+className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-glow-primary transition-colors hover:bg-accent-light"
             >
               Upload resume
             </Link>
@@ -64,7 +64,7 @@ export default function RecommendedJobs({
           )}
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {recommendations.map(({ job, match }) => (
             <JobCard
               key={job.id}

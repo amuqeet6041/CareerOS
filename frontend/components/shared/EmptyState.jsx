@@ -7,24 +7,22 @@ export default function EmptyState({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm ${className}`}
+      className={`animate-fade-in-up rounded-2xl border border-line bg-surface p-8 text-center shadow-card ${className}`}
     >
       {icon ? (
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-[#3B82F6]">
+        <div className="animate-pop-in mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent ring-1 ring-accent/10">
           {icon}
         </div>
       ) : (
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
-          <div className="h-2 w-2 rounded-full bg-slate-400" />
+        <div className="animate-pop-in mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-elevated ring-1 ring-line">
+          <div className="h-2 w-2 rounded-full bg-muted" />
         </div>
       )}
 
-      <h3 className="text-base font-semibold text-[#07111F]">
-        {title}
-      </h3>
+      <h3 className="text-base font-semibold text-navy">{title}</h3>
 
       {description ? (
-        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
           {description}
         </p>
       ) : null}

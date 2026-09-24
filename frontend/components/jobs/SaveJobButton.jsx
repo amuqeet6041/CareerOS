@@ -28,7 +28,7 @@ export default function SaveJobButton({
       <Link
         href="/login"
         aria-label={`Sign in to save ${jobTitle}`}
-        className={`${base} border-border bg-white text-navy hover:bg-surface ${className}`}
+        className={`${base} border-line bg-surface text-navy hover:bg-elevated ${className}`}
       >
         <Bookmark className="h-4 w-4" aria-hidden="true" />
         Save
@@ -64,7 +64,7 @@ export default function SaveJobButton({
         className={`${base} ${
           saved
             ? "border-accent/40 bg-accent/10 text-accent hover:bg-accent/20"
-            : "border-border bg-white text-navy hover:bg-surface"
+            : "border-line bg-surface text-navy hover:bg-elevated"
         } ${busy || disabled ? "cursor-not-allowed opacity-60" : ""}`}
       >
         {busy ? (
@@ -78,7 +78,7 @@ export default function SaveJobButton({
         {saved ? "Saved" : "Save"}
       </button>
       {error ? (
-        <span role="alert" className="mt-1 text-xs text-red-600">
+        <span role="alert" className="mt-1 text-xs text-danger">
           {error}
         </span>
       ) : null}

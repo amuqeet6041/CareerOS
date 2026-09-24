@@ -2,16 +2,194 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --color-navy: #0B1F3A;
-  --color-accent: #2563EB;
-  --color-surface: #F8FAFC;
-  --color-border: #E2E8F0;
-  --color-success: #16A34A;
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
 }
 
-html,
-body {
-  background-color: var(--color-surface);
-  color: var(--color-navy);
+/* ============================================================
+   CareerOS design tokens — Light (Warm White + Navy + Gold)
+   Values are RGB triples so opacity modifiers keep working.
+   ============================================================ */
+:root {
+  color-scheme: light;
+
+  --color-canvas: 248 246 241; /* #F8F6F1 — page background */
+  --color-surface: 255 255 255; /* #FFFFFF — cards / surfaces */
+  --color-elevated: 243 241 235; /* #F3F1EB — subtle fills, hovers */
+  --color-elevated-strong: 233 230 219; /* raised fills, skeletons */
+
+  --color-navy: 23 32 51; /* #172033 — primary text */
+  --color-navy-light: 79 93 118; /* secondary navy text */
+  --color-ink: 23 32 51;
+  --color-ink-strong: 15 26 48; /* #0F1A30 — deep navy */
+  --color-ink-muted: 75 85 99; /* #4B5563 */
+  --color-muted: 107 114 128; /* #6B7280 */
+  --color-faint: 148 163 184;
+
+  --color-line: 229 224 213; /* #E5E0D5 — borders */
+  --color-line-subtle: 240 236 228; /* hairline borders */
+
+  --color-primary: 37 99 235; /* #2563EB — action blue */
+  --color-primary-bright: 59 130 246; /* #3B82F6 */
+  --color-accent: 37 99 235; /* functional accent (blue) */
+  --color-accent-light: 59 130 246;
+
+  --color-gold: 201 151 62; /* #C9973E — decorative gold */
+  --color-gold-bright: 217 174 87; /* #D9AE57 */
+
+  --color-success: 22 132 91; /* #16845B */
+  --color-warning: 183 121 31; /* #B7791F */
+  --color-danger: 220 38 38; /* #DC2626 */
+  --color-info: 37 99 235; /* #2563EB */
+  --color-violet: 124 58 237; /* #7C3AED */
+}
+
+/* ============================================================
+   Dark theme — Midnight + Electric Blue
+   ============================================================ */
+.dark {
+  color-scheme: dark;
+
+  --color-canvas: 7 11 20; /* #070B14 */
+  --color-surface: 13 20 34; /* #0D1422 */
+  --color-elevated: 17 27 46; /* #111B2E */
+  --color-elevated-strong: 22 34 56; /* #162238 */
+
+  --color-navy: 248 250 252; /* #F8FAFC — primary text */
+  --color-navy-light: 203 213 225; /* #CBD5E1 */
+  --color-ink: 248 250 252;
+  --color-ink-strong: 255 255 255;
+  --color-ink-muted: 203 213 225;
+  --color-muted: 148 163 184; /* #94A3B8 */
+  --color-faint: 107 114 128;
+
+  --color-line: 30 41 59; /* #1E293B */
+  --color-line-subtle: 23 32 51; /* #172033 */
+
+  --color-primary: 37 99 235; /* #2563EB — deep action blue (AA on white/dark buttons) */
+  --color-primary-bright: 96 165 250; /* #60A5FA */
+  --color-accent: 59 130 246;
+  --color-accent-light: 96 165 250;
+
+  --color-gold: 56 189 248; /* #38BDF8 — electric accent in dark */
+  --color-gold-bright: 96 165 250;
+
+  --color-success: 34 197 94; /* #22C55E */
+  --color-warning: 245 158 11; /* #F59E0B */
+  --color-danger: 239 68 68; /* #EF4444 */
+  --color-info: 56 189 248; /* #38BDF8 */
+  --color-violet: 167 139 250; /* #A78BFA */
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: rgb(var(--color-line));
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: rgb(var(--color-canvas));
+    color: rgb(var(--color-navy));
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  ::selection {
+    background-color: rgb(var(--color-primary) / 0.18);
+  }
+
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid rgb(var(--color-primary-bright) / 0.55);
+    outline-offset: 2px;
+  }
+
+  input,
+  select,
+  textarea {
+    color-scheme: inherit;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(rgb(var(--color-ink) / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--color-ink) / 0.05) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .bg-dots {
+    background-image: radial-gradient(
+      rgb(var(--color-ink) / 0.08) 1px,
+      transparent 1px
+    );
+    background-size: 18px 18px;
+  }
+
+  .text-gradient-blue {
+    background-image: linear-gradient(
+      120deg,
+      rgb(var(--color-primary-bright) / 1),
+      rgb(var(--color-info) / 1),
+      rgb(var(--color-primary) / 1)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .text-gradient-gold {
+    background-image: linear-gradient(
+      120deg,
+      rgb(var(--color-gold) / 1),
+      rgb(var(--color-gold-bright) / 1)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .skeleton {
+    background-color: rgb(var(--color-elevated));
+    background-image: linear-gradient(
+      100deg,
+      transparent 30%,
+      rgb(var(--color-elevated-strong) / 0.9) 50%,
+      transparent 70%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s linear infinite;
+  }
 }

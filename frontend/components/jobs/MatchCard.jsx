@@ -11,7 +11,7 @@ function ChipList({ title, items, tone }) {
 
   const tones = {
     ok: "bg-success/10 text-success border border-success/20",
-    warn: "bg-amber-50 text-amber-700 border border-amber-200",
+    warn: "bg-warning/10 text-warning border border-warning/30",
   };
 
   return (
@@ -51,7 +51,7 @@ function ExperienceLine({ match }) {
   }
 
   return (
-    <div className="rounded-lg bg-surface px-3 py-2.5">
+    <div className="rounded-lg bg-elevated px-3 py-2.5">
       <p className="text-xs font-medium text-navy/70">
         {label || "Experience"}
       </p>
@@ -71,7 +71,7 @@ export default function MatchCard({ status = "idle", data = null, onRetry, onSig
         </p>
         <Link
           href="/login"
-          className="mt-4 inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-light"
+          className="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent-light"
         >
           Sign in
         </Link>
@@ -87,7 +87,7 @@ export default function MatchCard({ status = "idle", data = null, onRetry, onSig
         </p>
         <Link
           href="/student-dashboard/resume"
-          className="mt-4 inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-light"
+          className="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent-light"
         >
           Upload resume
         </Link>
@@ -99,9 +99,9 @@ export default function MatchCard({ status = "idle", data = null, onRetry, onSig
     return (
       <Panel title="Your match">
         <div className="space-y-3">
-          <div className="h-16 w-16 animate-pulse rounded-2xl bg-border" />
-          <div className="h-3 w-full max-w-[220px] animate-pulse rounded bg-border" />
-          <div className="h-3 w-3/4 animate-pulse rounded bg-border" />
+          <div className="h-16 w-16 animate-pulse rounded-2xl bg-elevated-strong" />
+          <div className="h-3 w-full max-w-[220px] animate-pulse rounded bg-elevated-strong" />
+          <div className="h-3 w-3/4 animate-pulse rounded bg-elevated-strong" />
         </div>
       </Panel>
     );
@@ -116,7 +116,7 @@ export default function MatchCard({ status = "idle", data = null, onRetry, onSig
         <button
           type="button"
           onClick={onRetry}
-          className="mt-4 inline-flex rounded-md border border-border px-4 py-2 text-sm font-medium text-navy hover:bg-surface"
+          className="mt-4 inline-flex rounded-md border border-line px-4 py-2 text-sm font-medium text-navy hover:bg-elevated"
         >
           Try again
         </button>
@@ -149,7 +149,7 @@ export default function MatchCard({ status = "idle", data = null, onRetry, onSig
 
 function Panel({ title, children }) {
   return (
-    <section className="rounded-lg border border-border bg-white p-5">
+    <section className="rounded-lg border border-line bg-surface p-5">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-navy/50">
         {title}
       </h2>

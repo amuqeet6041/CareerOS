@@ -12,11 +12,11 @@ export default function ApplicationCard({ application }) {
 
   if (!job) {
     return (
-      <article className="rounded-lg border border-border bg-white p-5">
+      <article className="rounded-2xl border border-line bg-surface p-5 shadow-card">
         <p className="text-sm text-navy/70">
           This job is no longer available.
         </p>
-        <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/60 pt-4">
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-line-subtle pt-4">
           <span className="text-xs text-navy/45">
             Applied {formatDate(application.applied_at)}
           </span>
@@ -32,7 +32,7 @@ export default function ApplicationCard({ application }) {
   const employmentType = humanizeLabel(job.employment_type);
 
   return (
-    <article className="rounded-lg border border-border bg-white p-5">
+    <article className="rounded-2xl border border-line bg-surface p-5 shadow-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-xs font-medium uppercase tracking-wide text-navy/50">
@@ -49,14 +49,14 @@ export default function ApplicationCard({ application }) {
         {employmentType ? <span>&bull; {employmentType}</span> : null}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line-subtle pt-4">
         <span className="text-xs text-navy/45">
           Applied {formatDate(application.applied_at)}
         </span>
         <div className="flex items-center gap-2">
           <Link
             href={`/jobs/${job.id}`}
-            className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-navy transition-colors hover:bg-surface"
+            className="rounded-md border border-line px-3 py-1.5 text-sm font-medium text-navy transition-colors hover:bg-elevated"
           >
             View Job
           </Link>
@@ -65,7 +65,7 @@ export default function ApplicationCard({ application }) {
               href={job.application_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-accent-light"
+              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white shadow-glow-primary transition-colors hover:bg-accent-light"
             >
               Open application
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />

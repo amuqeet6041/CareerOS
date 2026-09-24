@@ -23,7 +23,7 @@ export default function JobList({
 }) {
   if (loading && jobs.length === 0) {
     return (
-      <div className="grid gap-4 md:grid-cols-2" aria-busy="true">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2" aria-busy="true">
         {Array.from({ length: 6 }, (_, index) => (
           <JobCardSkeleton key={index} />
         ))}
@@ -33,7 +33,7 @@ export default function JobList({
 
   if (error && jobs.length === 0) {
     return (
-      <div className="rounded-lg border border-border bg-white p-8 text-center">
+      <div className="rounded-lg border border-line bg-surface p-8 text-center">
         <h3 className="text-base font-semibold text-navy">
           Couldn&apos;t load jobs
         </h3>
@@ -42,7 +42,7 @@ export default function JobList({
           <button
             type="button"
             onClick={onRetry}
-            className="mt-5 rounded-md border border-border px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-surface"
+            className="mt-5 rounded-md border border-line px-4 py-2 text-sm font-medium text-navy transition-colors hover:bg-elevated"
           >
             Try again
           </button>
@@ -62,7 +62,7 @@ export default function JobList({
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {jobs.map((job) => (
         <JobCard
           key={job.id}

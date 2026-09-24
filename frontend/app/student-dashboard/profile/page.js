@@ -18,6 +18,7 @@ import DashboardSection, {
   SectionSkeleton,
   SectionError,
 } from "@/components/dashboard/DashboardSection";
+import DashboardShell from "@/components/dashboard/DashboardShell";
 import { useProfile } from "@/hooks/useProfile";
 
 // ---------------------------------------------------------------------------
@@ -36,7 +37,7 @@ function InputField({ label, id, type = "text", value, onChange, placeholder }) 
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy placeholder-navy/30 transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30"
+        className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-navy placeholder:text-navy/30 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
       />
     </div>
   );
@@ -54,7 +55,7 @@ function TextareaField({ label, id, value, onChange, placeholder, rows = 4 }) {
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy placeholder-navy/30 transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 resize-none"
+        className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-navy placeholder:text-navy/30 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 resize-none"
       />
     </div>
   );
@@ -91,12 +92,12 @@ function TagInput({ label, id, tags, onChange, placeholder }) {
             }
           }}
           placeholder={placeholder}
-          className="flex-1 rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy placeholder-navy/30 transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30"
+          className="flex-1 rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-navy placeholder:text-navy/30 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
         />
         <button
           type="button"
           onClick={addTag}
-          className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-navy hover:bg-border/30 transition-colors"
+          className="rounded-lg border border-line bg-surface px-3 py-2 text-xs font-medium text-navy hover:bg-elevated transition-colors"
         >
           Add
         </button>
@@ -146,7 +147,7 @@ function CheckboxGroup({ label, options, selected, onChange }) {
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
               selected.includes(value)
                 ? "border-accent bg-accent/10 text-accent"
-                : "border-border bg-white text-navy/60 hover:border-accent/40 hover:text-navy"
+                : "border-line bg-canvas text-navy/60 hover:border-accent/40 hover:text-navy"
             }`}
           >
             {optLabel}
@@ -164,19 +165,19 @@ function SaveBar({ saving, saved, saveError, onSave, label = "Save changes" }) {
         type="button"
         onClick={onSave}
         disabled={saving}
-        className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow transition-all duration-200 hover:opacity-90 disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-glow-primary transition-all duration-200 hover:bg-accent-light disabled:opacity-50"
       >
         <Save className="h-4 w-4" />
         {saving ? "Saving…" : label}
       </button>
       {saved && (
-        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600">
+        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-success">
           <CheckCircle className="h-4 w-4" />
           Saved
         </span>
       )}
       {saveError && (
-        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600">
+        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-danger">
           <AlertCircle className="h-4 w-4" />
           {saveError}
         </span>
@@ -328,19 +329,26 @@ export default function ProfilePage() {
   // -------------------------------------------------------------------------
   if (loading && !profile && !preferences) {
     return (
-      <div className="space-y-6">
-        <SectionSkeleton />
-        <SectionSkeleton />
-      </div>
+      <DashboardShell maxWidth="5xl">
+        <div className="space-y-6">
+          <SectionSkeleton />
+          <SectionSkeleton />
+        </div>
+      </DashboardShell>
     );
   }
 
   if (error && !profile) {
-    return <SectionError message={error} onRetry={loadProfile} />;
+    return (
+      <DashboardShell maxWidth="5xl">
+        <SectionError message={error} onRetry={loadProfile} />
+      </DashboardShell>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <DashboardShell maxWidth="5xl">
+      <div className="space-y-6">
       {/* Page header */}
       <div>
         <h1 className="text-2xl font-bold text-navy">Profile</h1>
@@ -359,7 +367,7 @@ export default function ProfilePage() {
         <div className="space-y-4">
           {/* Identity row (read-only) */}
           {profile && (
-            <div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4">
+            <div className="flex items-center gap-3 rounded-xl border border-line bg-surface p-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10">
                 <User className="h-5 w-5 text-accent" />
               </div>
@@ -425,7 +433,7 @@ export default function ProfilePage() {
         actionHref="/student-dashboard/resume"
         actionLabel="View & manage resume →"
       >
-        <div className="flex items-start gap-3 rounded-xl border border-border bg-surface p-4">
+        <div className="flex items-start gap-3 rounded-xl border border-line bg-surface p-4">
           <FileText className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
           <div>
             <p className="text-sm text-navy">
@@ -489,7 +497,7 @@ export default function ProfilePage() {
               id="career-level"
               value={careerLevel}
               onChange={(e) => setCareerLevel(e.target.value)}
-              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30 sm:w-48"
+              className="w-full rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-navy transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 sm:w-48"
             >
               <option value="">— Select level —</option>
               {CAREER_LEVELS.map(({ value, label }) => (
@@ -515,7 +523,7 @@ export default function ProfilePage() {
                   type="checkbox"
                   checked={openToRelocate}
                   onChange={(e) => setOpenToRelocate(e.target.checked)}
-                  className="h-4 w-4 rounded border-border text-accent focus:ring-accent/30"
+                  className="h-4 w-4 rounded border-line text-accent focus:ring-accent/20"
                 />
                 <span className="text-sm text-navy">Open to relocation</span>
               </label>
@@ -533,7 +541,7 @@ export default function ProfilePage() {
                   value={salaryMin}
                   onChange={(e) => setSalaryMin(e.target.value)}
                   placeholder="Min"
-                  className="w-28 rounded-lg border border-border bg-white pl-7 pr-3 py-2 text-sm text-navy transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30"
+                  className="w-28 rounded-lg border border-line bg-canvas pl-7 pr-3 py-2 text-sm text-navy transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                 />
               </div>
               <span className="text-navy/40 text-sm">–</span>
@@ -544,13 +552,13 @@ export default function ProfilePage() {
                   value={salaryMax}
                   onChange={(e) => setSalaryMax(e.target.value)}
                   placeholder="Max"
-                  className="w-28 rounded-lg border border-border bg-white pl-7 pr-3 py-2 text-sm text-navy transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30"
+                  className="w-28 rounded-lg border border-line bg-canvas pl-7 pr-3 py-2 text-sm text-navy transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                 />
               </div>
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30"
+                className="rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-navy transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
               >
                 <option value="USD">USD</option>
                 <option value="GBP">GBP</option>
@@ -590,6 +598,7 @@ export default function ProfilePage() {
           />
         </div>
       </DashboardSection>
-    </div>
+      </div>
+    </DashboardShell>
   );
 }

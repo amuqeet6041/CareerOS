@@ -38,7 +38,7 @@ export default function ApplyNowButton({
         disabled
         title="Application link unavailable"
         aria-disabled="true"
-        className={`${base} cursor-not-allowed border border-border bg-surface text-navy/40 ${className}`}
+        className={`${base} cursor-not-allowed border border-line bg-surface text-navy/40 ${className}`}
       >
         Apply
       </button>
@@ -82,7 +82,7 @@ export default function ApplyNowButton({
         className={`${base} ${
           applied
             ? "border border-accent/30 bg-accent/10 text-accent hover:bg-accent/15"
-            : "bg-accent text-white hover:bg-accent-light"
+            : "bg-primary text-white hover:bg-accent-light"
         }`}
       >
         {busy ? (
@@ -99,7 +99,7 @@ export default function ApplyNowButton({
         </span>
       ) : null}
       {error ? (
-        <span role="alert" className="mt-1 text-center text-xs text-red-600">
+        <span role="alert" className="mt-1 text-center text-xs text-danger">
           {error}
         </span>
       ) : null}

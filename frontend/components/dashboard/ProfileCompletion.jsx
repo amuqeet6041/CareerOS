@@ -9,7 +9,7 @@ export default function ProfileCompletion({ user, resume = null }) {
   const completion = computeProfileCompletion({ user, resume });
 
   return (
-    <section className="rounded-2xl border border-border bg-white p-6 shadow-sm">
+    <section className="rounded-2xl border border-line bg-surface p-6 shadow-card">
       <div className="flex flex-wrap items-center gap-6">
         <div className="text-center">
           <p className="text-3xl font-semibold text-accent">{completion.percentage}%</p>
@@ -17,7 +17,7 @@ export default function ProfileCompletion({ user, resume = null }) {
         </div>
         <div className="min-w-0 flex-1">
           <div
-            className="h-2.5 w-full overflow-hidden rounded-full bg-border"
+            className="h-2.5 w-full overflow-hidden rounded-full bg-line/40"
             role="meter"
             aria-label="Profile completion"
             aria-valuemin={0}
@@ -25,7 +25,7 @@ export default function ProfileCompletion({ user, resume = null }) {
             aria-valuenow={completion.completed}
           >
             <div
-              className="h-full rounded-full bg-gradient-to-r from-accent to-[#60A5FA]"
+              className="h-full rounded-full bg-gradient-to-r from-accent to-accent-light"
               style={{ width: `${completion.percentage}%` }}
             />
           </div>
@@ -45,7 +45,7 @@ export default function ProfileCompletion({ user, resume = null }) {
           >
             <span
               className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
-                met ? "bg-success text-white" : "bg-border/70 text-navy/40"
+                met ? "bg-success text-white" : "bg-elevated-strong text-navy/40"
               }`}
             >
               {met ? (

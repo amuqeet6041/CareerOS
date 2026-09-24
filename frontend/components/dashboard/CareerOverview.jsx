@@ -28,7 +28,7 @@ export default function CareerOverview({ resume = null, loading = false }) {
           action={
             <Link
               href="/student-dashboard/resume"
-              className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light"
+              className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-glow-primary transition-colors hover:bg-accent-light"
             >
               Upload resume
             </Link>

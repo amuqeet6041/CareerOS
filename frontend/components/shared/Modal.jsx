@@ -48,21 +48,21 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#07111F]/70 px-4 py-6 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 px-4 py-6 backdrop-blur-sm"
       onMouseDown={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? "modal-title" : undefined}
     >
       <div
-        className={`w-full ${sizes[size] ?? sizes.md} max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-black/20`}
+        className={`w-full ${sizes[size] ?? sizes.md} max-h-[90vh] animate-scale-in overflow-y-auto rounded-2xl border border-line bg-surface shadow-2xl shadow-black/20`}
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6">
+        <div className="flex items-center justify-between border-b border-line-subtle px-5 py-4 sm:px-6">
           {title ? (
             <h2
               id="modal-title"
-              className="text-lg font-semibold tracking-tight text-[#07111F]"
+              className="text-lg font-semibold tracking-tight text-navy"
             >
               {title}
             </h2>
@@ -74,15 +74,13 @@ export default function Modal({
             type="button"
             onClick={onClose}
             aria-label="Close modal"
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-muted transition-colors hover:bg-elevated hover:text-navy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-bright/60"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="px-5 py-5 sm:px-6 sm:py-6">
-          {children}
-        </div>
+        <div className="px-5 py-5 sm:px-6 sm:py-6">{children}</div>
       </div>
     </div>
   );

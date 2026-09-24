@@ -6,7 +6,7 @@ export default function JobDetails({ job }) {
   const salary = formatSalary(job.salary_min, job.salary_max, job.currency);
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
+    <div className="rounded-lg border border-line bg-surface p-6">
       <h2 className="text-xl font-semibold text-navy">{job.title}</h2>
       <p className="text-navy/60">{job.company}</p>
 
@@ -30,7 +30,7 @@ export default function JobDetails({ job }) {
             href={job.application_url}
             target="_blank"
             rel="noreferrer"
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-light"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-accent-light"
           >
             Apply
           </a>
@@ -51,7 +51,7 @@ export default function JobDetails({ job }) {
             {job.skills.map((skill) => (
               <span
                 key={skill.skill_name}
-                className="rounded-full bg-surface px-3 py-1 text-xs text-navy"
+                className="rounded-full bg-elevated px-3 py-1 text-xs text-navy"
               >
                 {skill.skill_name}
               </span>

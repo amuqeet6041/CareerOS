@@ -11,14 +11,15 @@ export default function Loading({
 
   return (
     <div
-      className={`flex items-center justify-center gap-2.5 py-8 text-sm text-slate-500 ${className}`}
+      role="status"
+      aria-live="polite"
+      className={`flex items-center justify-center gap-2.5 py-8 text-sm text-muted ${className}`}
     >
       <span
-        className={`animate-spin rounded-full border-[#3B82F6] border-t-transparent ${
+        className={`animate-spin rounded-full border-accent border-t-transparent ${
           sizes[size] ?? sizes.md
         }`}
       />
-
       <span>{label}</span>
     </div>
   );
