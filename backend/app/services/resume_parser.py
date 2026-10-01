@@ -14,6 +14,7 @@ import io
 import re
 from typing import Any
 
+from app.services.experience_dates import parse_date_range, strip_date_text as _strip_dates
 from app.utils.validators import allowed_resume_extension, matches_resume_content_type
 
 
@@ -102,6 +103,7 @@ _DATE_ONLY_RE = re.compile(
 )
 _EXPERIENCE_AT_RE = re.compile(r"^(.{1,80}?)\s+(?:at|@)\s+(.{1,100})$", re.IGNORECASE)
 _EXPERIENCE_SEP_RE = re.compile(r"^(.{1,80}?)\s*(?:[–—]|│|\|)\s*(.{1,100})$")
+_EXPERIENCE_SEP_SPLIT_RE = re.compile(r"\s*(?:[–—]|│|\|)\s*")
 _COMPANY_KEYWORDS_RE = re.compile(
     r"\b(?:Inc|Inc\.|Corp|Corporation|LLC|Limited|Ltd|Company|Co\.|Co|GmbH|AG|Pty|Group|Technologies?|Systems|Labs|Laboratories?|Consulting|Solutions|Services|Industries|University|College|Hospital|Agency|Startup|Studio|Global|Digital|Analytics|Software|Banks?)\b",
     re.IGNORECASE,
@@ -291,15 +293,29 @@ def parse_education(section_lines: list[str]) -> list[dict[str, Any]]:
     return entries
 
 
+def _first_column(value: str) -> str:
+    """Take the first pipe/box-drawing-separated column of a header field.
+
+    A resume header can carry extra columns after the company
+    ("Acme Inc. | Toronto, ON"). Only the first is the name; folding the rest
+    in leaked location text into the company, which then flows into matching.
+    """
+    parts = _EXPERIENCE_SEP_SPLIT_RE.split(value.strip())
+    return parts[0].strip() if parts and parts[0].strip() else value.strip()
+
+
 def _match_experience_entry(line: str) -> dict[str, str] | None:
     at_match = _EXPERIENCE_AT_RE.match(line)
     if at_match:
-        return {"title": at_match.group(1).strip(), "company": at_match.group(2).strip()}
+        return {
+            "title": at_match.group(1).strip(),
+            "company": _first_column(at_match.group(2)),
+        }
     sep_match = _EXPERIENCE_SEP_RE.match(line)
     if sep_match:
         return {
             "title": sep_match.group(1).strip(),
-            "company": sep_match.group(2).strip(),
+            "company": _first_column(sep_match.group(2)),
         }
     comma_match = _EXPERIENCE_COMMA_RE.match(line)
     if comma_match and _COMPANY_KEYWORDS_RE.search(comma_match.group(2)):
@@ -325,7 +341,24 @@ def parse_experience(section_lines: list[str]) -> list[dict[str, Any]]:
         if line == "":
             flush()
             continue
-        entry = _match_experience_entry(line)
+
+        # A standalone date line ("Jan 2022 - Present") belongs to the entry
+        # above it when that entry still has no dates.
+        standalone = parse_date_range(line)
+        is_date_only = standalone is not None and _strip_dates(line) == ""
+        if is_date_only:
+            if current is not None and current["start_date"] is None:
+                current.update(standalone)
+                current["currently_employed"] = bool(standalone["currently_employed"])
+            else:
+                flush()
+            continue
+
+        # Otherwise the date may be inline with the header.
+        inline = parse_date_range(line)
+        header = _strip_dates(line) if inline is not None else line
+
+        entry = _match_experience_entry(header)
         if entry:
             flush()
             current = {
@@ -333,8 +366,16 @@ def parse_experience(section_lines: list[str]) -> list[dict[str, Any]]:
                 "company": entry["company"],
                 "description": None,
                 "_desc_lines": [],
+                "start_date": None,
+                "end_date": None,
+                "currently_employed": False,
             }
+            if inline is not None:
+                current["start_date"] = inline["start_date"]
+                current["end_date"] = inline["end_date"]
+                current["currently_employed"] = bool(inline["currently_employed"])
             continue
+
         if _DATE_ONLY_RE.search(line) and len(_DATE_ONLY_RE.sub("", line).strip()) < 3:
             flush()
             continue
@@ -349,12 +390,13 @@ def parse_experience(section_lines: list[str]) -> list[dict[str, Any]]:
             "company": entry["company"],
             "title": entry["title"],
             "description": " ".join(description_lines) if description_lines else None,
-            # Canonical shape parity with AI output; deterministic parser never
-            # guesses dates/roles, so these stay absent (null).
+            # Canonical shape parity with AI output. Dates come from an
+            # explicit, unambiguous range in the resume text only; anything
+            # unparsed stays absent (null) rather than guessed.
             "location": None,
-            "start_date": None,
-            "end_date": None,
-            "currently_employed": False,
+            "start_date": entry["start_date"],
+            "end_date": entry["end_date"],
+            "currently_employed": bool(entry["currently_employed"]),
         }
         result.append(entry_copy)
     return result
@@ -512,8 +554,20 @@ def parse_resume(
     if not normalized.strip():
         raise EmptyResumeError("The document contains no extractable text.")
 
-    lines = normalized.split("\n")
-    sections = _split_sections(lines)
+    return parse_sections(normalized)
+
+
+def parse_sections(raw_text: str) -> dict[str, Any]:
+    """Apply the deterministic section parsers to already-extracted text.
+
+    Split out from :func:`parse_resume` so the stored resume text can be
+    re-parsed (e.g. on re-analysis) without re-reading an uploaded file.
+    """
+    normalized = normalize_text(raw_text)
+    if not normalized.strip():
+        raise EmptyResumeError("The document contains no extractable text.")
+
+    sections = _split_sections(normalized.split("\n"))
 
     return {
         "raw_text": normalized,

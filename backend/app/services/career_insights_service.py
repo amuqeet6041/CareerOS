@@ -314,7 +314,17 @@ def _run_ai_career_insights(deterministic_payload: dict) -> dict:
             build_career_insights_messages(deterministic_payload)
         )
         insights = AICareerInsights.model_validate(payload)
-    except (AIProviderError, ValidationError, ValueError, TypeError):
+    except AIProviderError as exc:
+        # Logged separately from a validation failure so a provider outage is
+        # not misread as a prompt/schema problem (both land on the same
+        # deterministic fallback, which is why they used to be indistinguishable
+        # in the logs).
+        logger.warning(
+            "Careers AI provider call failed (category=%s); using deterministic analysis.",
+            exc.category,
+        )
+        return _ai_insights_fallback()
+    except (ValidationError, ValueError, TypeError):
         logger.warning("Careers AI output failed validation; using deterministic analysis.")
         return _ai_insights_fallback()
     except Exception:

@@ -16,6 +16,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.models.resume import Certification, Education, Experience, Resume, Skill
+from app.services.experience_duration import calculate_total_experience_years
 
 
 def get_resume_for_user(db: Session, user_id: int) -> Resume | None:
@@ -86,8 +87,9 @@ def save_resume(
 
     ``structured`` is the validated persistence shape from the AI pipeline;
     when provided it is persisted as-is (including ``total_experience_years``).
-    Otherwise the deterministic parse is persisted and experience is left
-    unknown (``None``), never guessed as zero.
+    Otherwise the deterministic parse is persisted and the total is computed
+    from the date ranges the deterministic parser recovered — remaining
+    ``None`` (unknown) when any role's dates are unreliable, never zero.
     """
     resume = get_resume_for_user(db, user_id)
     if resume is None:
@@ -109,7 +111,13 @@ def save_resume(
         resume.total_experience_years = structured.get("total_experience_years")
     else:
         _rebuild_children(db, resume, parsed)
-        resume.total_experience_years = None
+        # The deterministic parser now recovers explicit date ranges, so the
+        # fallback path can produce a real total instead of always null. It
+        # stays None when any role's dates are missing/unreliable — never
+        # guessed as zero.
+        resume.total_experience_years = calculate_total_experience_years(
+            parsed.get("experience", [])
+        )
     resume.analysis_status = analysis_status
 
     db.commit()

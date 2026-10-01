@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 
 import httpx
 
@@ -24,12 +25,19 @@ from app.services.ai.base import (
     AIProvider,
     AIRequestError,
     AIConfigurationError,
+    is_transient_category,
 )
 from app.services.ai.prompts import build_messages
 
 logger = logging.getLogger("careeros.ai")
 
 SUPPORTED_PROVIDERS = {"openai", "gemini"}
+
+# Status codes worth a bounded retry. 429 is throttling; the 5xx set is the
+# standard "provider is unwell right now" group; 408 is an explicit upstream
+# request timeout. Everything else (400/404/422/...) is a permanent request
+# problem that a retry cannot fix.
+RETRYABLE_STATUS_CODES = frozenset({408, 429, 500, 502, 503, 504})
 
 
 def parse_json_payload(content: str) -> dict:
@@ -69,25 +77,63 @@ class OpenAICompatibleProvider(AIProvider):
         model: str = "gpt-4o-mini",
         base_url: str = "https://api.openai.com/v1",
         timeout_seconds: int = 30,
+        max_retries: int = 2,
+        retry_base_delay: float = 0.5,
+        retry_max_delay: float = 4.0,
+        sleep=time.sleep,
     ):
         self._api_key = api_key
         self._model = model
         self._base_url = base_url.rstrip("/")
         self._timeout_seconds = timeout_seconds
+        # Bounded, clamped here as well as in settings so the provider is safe
+        # to construct directly (tests, scripts) with any values.
+        self._max_retries = max(0, min(int(max_retries), 5))
+        self._retry_base_delay = max(0.0, float(retry_base_delay))
+        self._retry_max_delay = max(0.0, float(retry_max_delay))
+        # Injectable so tests never actually sleep.
+        self._sleep = sleep
 
-    def _chat(self, messages: list[dict]) -> dict:
-        """Call the chat-completions endpoint and return a parsed JSON object."""
-        url = f"{self._base_url}/chat/completions"
-        payload = {
-            "model": self._model,
-            "messages": messages,
-            "response_format": {"type": "json_object"},
-            "temperature": 0,
-        }
-        headers = {"Authorization": f"Bearer {self._api_key}"}
+    def _backoff_delay(self, attempt: int) -> float:
+        """Exponential backoff, capped. ``attempt`` is 1-based."""
+        delay = self._retry_base_delay * (2 ** (attempt - 1))
+        return min(delay, self._retry_max_delay)
 
+    def _classify_status(self, status_code: int) -> AIRequestError:
+        """Map a non-200 status onto a typed error with a retry decision.
+
+        The category drives both retry behaviour and log output; the message
+        never includes the response body (it can echo the request) or the key.
+        """
+        if status_code in (401, 403):
+            # Permanent: a bad/expired key will still be rejected on retry.
+            return AIRequestError(
+                "AI provider rejected the API key.", category="invalid_key"
+            )
+        if status_code == 429:
+            return AIRequestError(
+                "AI provider rate limit exceeded.", category="rate_limit"
+            )
+        if status_code == 408:
+            # Categorized as a timeout rather than generic unavailability so the
+            # log distinguishes it from a 5xx outage.
+            return AIRequestError(
+                "AI provider request timed out (HTTP 408).", category="timeout"
+            )
+        if status_code in RETRYABLE_STATUS_CODES:
+            return AIRequestError(
+                f"AI provider returned HTTP {status_code}.",
+                category="provider_unavailable",
+            )
+        # Permanent client-side problem (400 bad request, 404 wrong model, ...).
+        return AIRequestError(
+            f"AI provider returned HTTP {status_code}.", category="provider_error"
+        )
+
+    def _post_once(self, url: str, payload: dict, headers: dict) -> httpx.Response:
+        """One HTTP attempt; transport failures are mapped to typed errors."""
         try:
-            response = httpx.post(
+            return httpx.post(
                 url,
                 json=payload,
                 headers=headers,
@@ -103,29 +149,52 @@ class OpenAICompatibleProvider(AIProvider):
                 category="provider_unavailable",
             ) from exc
 
-        if response.status_code in (401, 403):
-            raise AIRequestError(
-                "AI provider rejected the API key.", category="invalid_key"
-            )
-        if response.status_code == 429:
-            raise AIRequestError(
-                "AI provider rate limit exceeded.", category="rate_limit"
-            )
-        if response.status_code != 200:
-            # Body is deliberately not included: it may echo the request.
-            raise AIRequestError(
-                f"AI provider returned HTTP {response.status_code}.",
-                category="provider_error",
-            )
+    def _chat(self, messages: list[dict]) -> dict:
+        """Call chat-completions with bounded retries, returning parsed JSON.
 
-        try:
-            content = response.json()["choices"][0]["message"]["content"]
-        except (KeyError, IndexError, ValueError) as exc:
-            raise AIOutputError(
-                "AI provider response was missing the expected payload shape."
-            ) from exc
+        Retries only transient failures (429/408/5xx, timeouts, connection
+        errors). Permanent failures — invalid key, bad request, unusable output
+        — raise on the first attempt. On exhaustion the last error is re-raised
+        so the pipeline's existing fallback path behaves identically.
+        """
+        url = f"{self._base_url}/chat/completions"
+        payload = {
+            "model": self._model,
+            "messages": messages,
+            "response_format": {"type": "json_object"},
+            "temperature": 0,
+        }
+        headers = {"Authorization": f"Bearer {self._api_key}"}
 
-        return parse_json_payload(content)
+        attempt = 0
+        while True:
+            try:
+                response = self._post_once(url, payload, headers)
+                if response.status_code != 200:
+                    raise self._classify_status(response.status_code)
+                try:
+                    content = response.json()["choices"][0]["message"]["content"]
+                except (KeyError, IndexError, ValueError) as exc:
+                    raise AIOutputError(
+                        "AI provider response was missing the expected payload shape."
+                    ) from exc
+                return parse_json_payload(content)
+            except AIOutputError:
+                # Bad output is not fixed by calling again; parse_json_payload
+                # already rejected a non-JSON body once.
+                raise
+            except AIRequestError as exc:
+                if not is_transient_category(exc.category) or attempt >= self._max_retries:
+                    raise
+                attempt += 1
+                delay = self._backoff_delay(attempt)
+                logger.warning(
+                    "AI provider transient failure (category=%s, attempt=%s/%s, "
+                    "retry_in=%.2fs); retrying.",
+                    exc.category, attempt, self._max_retries, delay,
+                )
+                if delay:
+                    self._sleep(delay)
 
     def extract_resume_information(self, text: str) -> dict:
         return self._chat(build_messages(text))
@@ -200,4 +269,7 @@ def get_ai_provider() -> AIProvider | None:
         model=model,
         base_url=base_url,
         timeout_seconds=settings.AI_TIMEOUT_SECONDS,
+        max_retries=settings.AI_MAX_RETRIES,
+        retry_base_delay=settings.AI_RETRY_BASE_DELAY_SECONDS,
+        retry_max_delay=settings.AI_RETRY_MAX_DELAY_SECONDS,
     )

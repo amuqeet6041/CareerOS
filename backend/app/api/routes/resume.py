@@ -45,7 +45,10 @@ async def upload_resume(
     except (resume_parser.EmptyResumeError, resume_parser.MalformedResumeError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    structured, status = run_resume_analysis(parsed.get("raw_text") or "")
+    structured, status = run_resume_analysis(
+        parsed.get("raw_text") or "",
+        deterministic_experience=parsed.get("experience"),
+    )
     resume = resume_service.save_resume(
         db,
         current_user.id,
@@ -72,7 +75,20 @@ def analyze_resume(
     if resume is None:
         raise HTTPException(status_code=404, detail="No resume uploaded yet.")
 
-    structured, status = run_resume_analysis(resume.raw_text or "")
+    # Re-parse the stored text so deterministic dates are available again to
+    # supplement a model response that omitted them.
+    deterministic_experience = None
+    try:
+        deterministic_experience = resume_parser.parse_sections(resume.raw_text or "")[
+            "experience"
+        ]
+    except resume_parser.ResumeParseError:
+        deterministic_experience = None
+
+    structured, status = run_resume_analysis(
+        resume.raw_text or "",
+        deterministic_experience=deterministic_experience,
+    )
     resume = resume_service.update_resume_analysis(
         db,
         resume,

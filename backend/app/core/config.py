@@ -45,6 +45,18 @@ class Settings(BaseSettings):
     AI_MAX_RESUME_CHARS: int = 30000
     AI_TIMEOUT_SECONDS: int = 30
 
+    # Bounded retry policy for transient provider failures (rate limits,
+    # timeouts, connection resets, 5xx). "AI_MAX_RETRIES" is the number of
+    # *additional* attempts after the first, so the default of 2 means at most
+    # 3 HTTP calls. Permanent failures (invalid key, bad request, unusable
+    # output) are never retried. Backoff is exponential starting at
+    # AI_RETRY_BASE_DELAY_SECONDS and capped at AI_RETRY_MAX_DELAY_SECONDS, so
+    # the worst case stays well under a couple of seconds of added latency and
+    # can never loop indefinitely.
+    AI_MAX_RETRIES: int = 2
+    AI_RETRY_BASE_DELAY_SECONDS: float = 0.5
+    AI_RETRY_MAX_DELAY_SECONDS: float = 4.0
+
     # Explicit allow-list only: the Next.js dev server can run on 3000 or 3001
     # and may be reached via localhost or 127.0.0.1. Never use "*" with
     # credentials. Add real frontend origins before any production deploy.
@@ -56,6 +68,18 @@ class Settings(BaseSettings):
     ]
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @field_validator("AI_MAX_RETRIES")
+    @classmethod
+    def _clamp_ai_max_retries(cls, value: int) -> int:
+        # Bounded by design: at most 5 retries (6 calls) so a misconfigured
+        # environment can never turn one upload into a long stall.
+        return max(0, min(int(value), 5))
+
+    @field_validator("AI_RETRY_BASE_DELAY_SECONDS", "AI_RETRY_MAX_DELAY_SECONDS")
+    @classmethod
+    def _clamp_ai_retry_delays(cls, value: float) -> float:
+        return max(0.0, min(float(value), 10.0))
 
     @field_validator("JWT_SECRET")
     @classmethod

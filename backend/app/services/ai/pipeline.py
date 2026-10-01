@@ -17,6 +17,7 @@ back to the deterministic parse so uploads never break because of AI.
 from __future__ import annotations
 
 import logging
+import re
 
 from pydantic import ValidationError
 
@@ -31,12 +32,19 @@ from app.utils.job_fields import normalize_skill
 logger = logging.getLogger("careeros.ai")
 
 
-def structured_to_persist(extraction: AIResumeExtraction) -> dict:
+def structured_to_persist(
+    extraction: AIResumeExtraction,
+    deterministic_experience: list[dict] | None = None,
+) -> dict:
     """Turn validated AI output into the persistence shape.
 
     Deduplicates skills by the same normalized key used by the matching engine,
     keeps AI spelling for display, and computes the deterministic total
     experience rather than asking the model for a number.
+
+    ``deterministic_experience`` is the already-parsed experience list from the
+    same document. It is used only to supply dates the AI did not return, under
+    the conservative rules in :func:`_merge_deterministic_dates`.
     """
     skills: list[str] = []
     seen: set[str] = set()
@@ -87,6 +95,8 @@ def structured_to_persist(extraction: AIResumeExtraction) -> dict:
             }
         )
 
+    _merge_deterministic_dates(experience, deterministic_experience)
+
     return {
         "skills": skills,
         "education": education,
@@ -96,12 +106,65 @@ def structured_to_persist(extraction: AIResumeExtraction) -> dict:
     }
 
 
-def run_resume_analysis(raw_text: str) -> tuple[dict | None, str]:
+def _company_key(value: str | None) -> str:
+    """Aggressively normalized company key for matching AI vs deterministic
+    entries ("Acme Inc." -> "acmeinc")."""
+    return re.sub(r"[^a-z0-9]+", "", (value or "").lower())
+
+
+def _merge_deterministic_dates(
+    experience: list[dict],
+    deterministic_experience: list[dict] | None,
+) -> None:
+    """Fill missing AI experience dates from the deterministic parse.
+
+    Conservative by construction:
+
+    - Dates already extracted by the AI are never overwritten.
+    - A deterministic date is adopted only for an AI entry with no dates at all,
+      and only when exactly one deterministic entry shares a normalized company
+      name. An ambiguous match (multiple same-company roles, or no company name
+      on either side) is left unknown rather than guessed.
+    - An adopted ongoing marker clears ``end_date`` so the duration calculator
+      clamps to the current month instead of reading a stale end date.
+    """
+    if not deterministic_experience:
+        return
+
+    by_company: dict[str, list[dict]] = {}
+    for entry in deterministic_experience:
+        key = _company_key(entry.get("company"))
+        if key and entry.get("start_date"):
+            by_company.setdefault(key, []).append(entry)
+
+    for item in experience:
+        if item["start_date"]:
+            continue
+        candidates = by_company.get(_company_key(item.get("company")), [])
+        if len(candidates) != 1:
+            continue
+        source = candidates[0]
+        item["start_date"] = source["start_date"]
+        if source.get("currently_employed"):
+            item["currently_employed"] = True
+            item["end_date"] = None
+        else:
+            item["end_date"] = source.get("end_date")
+
+
+def run_resume_analysis(
+    raw_text: str,
+    deterministic_experience: list[dict] | None = None,
+) -> tuple[dict | None, str]:
     """Analyze raw resume text and return ``(structured, status)``.
 
     Never raises: unexpected failures degrade to deterministic parsing with
     status ``"ai_failed"``. Only status/category and the sanitized provider
     error message are logged — never resume text, prompts, responses, or keys.
+
+    ``deterministic_experience`` is the experience parsed from the same text; it
+    is passed through to :func:`structured_to_persist` so a model that omitted
+    dates still yields a real total experience.
     """
     try:
         provider = ai_provider.get_ai_provider()
@@ -137,7 +200,7 @@ def run_resume_analysis(raw_text: str) -> tuple[dict | None, str]:
         return None, "ai_failed"
 
     try:
-        structured = structured_to_persist(extraction)
+        structured = structured_to_persist(extraction, deterministic_experience)
     except (ValueError, TypeError):
         logger.warning("AI enrichment failed; using deterministic parse.")
         return None, "ai_failed"

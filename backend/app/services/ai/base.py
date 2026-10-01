@@ -38,6 +38,22 @@ class AIRequestError(AIProviderError):
     category = "provider_error"
 
 
+# Transient categories: the same call can plausibly succeed moments later, so
+# a bounded retry is worthwhile. Anything NOT listed here (invalid_key,
+# configuration, output_error, provider_error for a permanent 4xx, ...) is a
+# permanent failure and must fail fast rather than burning retries.
+TRANSIENT_ERROR_CATEGORIES = frozenset(
+    {"timeout", "rate_limit", "provider_unavailable"}
+)
+
+
+def is_transient_category(category: str) -> bool:
+    """True when a failure category is worth retrying a small, bounded number
+    of times. Permanent failures (bad key, malformed request, unusable output)
+    return False so callers fail immediately."""
+    return category in TRANSIENT_ERROR_CATEGORIES
+
+
 class AIOutputError(AIProviderError):
     """Provider returned output that could not be parsed or validated."""
 
