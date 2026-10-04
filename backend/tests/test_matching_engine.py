@@ -130,11 +130,19 @@ def test_qualification_match_partial_book_example():
 
 def test_qualification_match_no_match():
     result = qualification_match(
+        candidate_qualifications=["Bachelor's degree"],
+        job_required_qualifications=["Master's degree"],
+    )
+    assert result.percentage == 0.0
+    assert result.missing_qualifications == ["Master's degree"]
+
+
+def test_qualification_match_higher_degree_meets_generic_requirement():
+    result = qualification_match(
         candidate_qualifications=["Master's degree"],
         job_required_qualifications=["Bachelor's degree"],
     )
-    assert result.percentage == 0.0
-    assert result.missing_qualifications == ["Bachelor's degree"]
+    assert result.percentage == 100.0
 
 
 def test_qualification_match_case_insensitive():
@@ -343,3 +351,68 @@ def test_build_summary_is_deterministic():
     summary_bis = build_summary(calculate_overall_match(skill.percentage, qualification.percentage, experience.percentage), skill, qualification, experience)
     assert summary == summary_bis
     assert "Candidate experience exceeds the required maximum." in summary
+
+# ------------------------------------------------- tolerant skill/degree matching
+
+
+def test_skill_match_tolerates_spelling_variants_and_aliases():
+    result = skill_match(
+        ["ReactJS", "MS Excel", "PowerBI", "Python3", "node.js"],
+        ["React", "Excel", "Power BI", "Python", "Node.js"],
+    )
+    assert result.percentage == 100.0
+    assert result.missing_skills == []
+
+
+def test_skill_match_implied_general_skill():
+    result = skill_match(["MySQL"], ["SQL"])
+    assert result.percentage == 100.0
+
+
+def test_skill_match_implication_is_one_directional():
+    result = skill_match(["SQL"], ["MySQL"])
+    assert result.percentage == 0.0
+
+
+def test_skill_match_keeps_c_family_distinct():
+    result = skill_match(["C"], ["C++", "C#"])
+    assert result.percentage == 0.0
+    assert result.missing_skills == ["C++", "C#"]
+
+
+def test_skill_match_strips_fundamentals_qualifier():
+    result = skill_match(["Machine Learning"], ["Machine Learning Fundamentals"])
+    assert result.percentage == 100.0
+
+
+def test_qualification_match_degree_abbreviation_and_field():
+    result = qualification_match(
+        ["BS", "Computer Science", "BS in Computer Science"],
+        ["Bachelor's in Computer Science"],
+    )
+    assert result.percentage == 100.0
+
+
+def test_qualification_match_degree_without_in_and_implied_field():
+    assert qualification_match(["BS Computer Science"], ["Bachelor's in Computer Science"]).percentage == 100.0
+    assert qualification_match(["BSCS"], ["Bachelor's in Computer Science"]).percentage == 100.0
+
+
+def test_qualification_match_higher_degree_same_field_satisfies():
+    result = qualification_match(["MS in Data Science"], ["Bachelor's in Data Science"])
+    assert result.percentage == 100.0
+
+
+def test_qualification_match_requires_matching_field():
+    result = qualification_match(["BS in Computer Science"], ["Bachelor's in Finance"])
+    assert result.percentage == 0.0
+
+
+def test_qualification_match_lower_degree_does_not_satisfy():
+    result = qualification_match(["BS in Data Science"], ["Master's in Data Science"])
+    assert result.percentage == 0.0
+
+
+def test_qualification_match_non_degree_requirement_stays_exact():
+    result = qualification_match(["BS"], ["Enrolled in an undergraduate program"])
+    assert result.percentage == 0.0

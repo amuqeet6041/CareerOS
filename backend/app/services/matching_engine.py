@@ -11,8 +11,13 @@ Design rules:
   its inputs so scores are reproducible and unit-testable.
 - Normalization is case-insensitive and whitespace-tolerant (reuses
   :func:`app.utils.job_fields.normalize_skill` / ``normalize_qualification``).
-  No synonym/thesaurus dictionary is used; "Power BI" and "power bi" are the
-  same skill, while "B.Sc" and "Bachelor of Science" are *not* treated as equal.
+  On top of that, matching uses small, fixed equivalence rules so common
+  resume spellings line up with job requirements: punctuation/spacing variants
+  ("PowerBI" = "Power BI", "React.js" = "React"), a short alias table
+  ("MS Excel" = "Excel"), implied skills ("MySQL" also counts as "SQL"), and
+  degree parsing ("BS in Computer Science" satisfies "Bachelor's in Computer
+  Science"; a higher degree in the same field also satisfies it). The rules
+  are static tables, so results stay deterministic.
 - A component score is ``None`` (unknown) when the **job has no requirement**
   for it (no required skills, no required qualifications, no experience
   requirement). This deliberately distinguishes "candidate meets all required
@@ -25,6 +30,7 @@ Design rules:
   "unknown" rather than a fabricated score.
 """
 
+import re
 from dataclasses import dataclass
 
 from app.utils.job_fields import normalize_qualification, normalize_skill
@@ -126,16 +132,200 @@ def _dedupe_normalized(values: list[str], normalizer) -> dict[str, str]:
     return seen
 
 
+# Compact skill key (lowercase, no punctuation/spaces) -> canonical compact key.
+_SKILL_ALIASES = {
+    "msexcel": "excel",
+    "microsoftexcel": "excel",
+    "advancedexcel": "excel",
+    "excelspreadsheets": "excel",
+    "python3": "python",
+    "js": "javascript",
+    "es6": "javascript",
+    "ecmascript": "javascript",
+    "ts": "typescript",
+    "html5": "html",
+    "css3": "css",
+    "rest": "restapis",
+    "restapi": "restapis",
+    "restful": "restapis",
+    "restfulapi": "restapis",
+    "restfulapis": "restapis",
+    "ml": "machinelearning",
+    "datavisualisation": "datavisualization",
+    "dataviz": "datavisualization",
+    "msword": "word",
+    "microsoftword": "word",
+    "mspowerpoint": "powerpoint",
+    "microsoftpowerpoint": "powerpoint",
+    "microsoftpowerbi": "powerbi",
+    "postgres": "postgresql",
+    "golang": "go",
+}
+
+# Candidate skills that also demonstrate a more general required skill.
+_SKILL_IMPLIES = {
+    "mysql": ("sql",),
+    "postgresql": ("sql",),
+    "mssql": ("sql",),
+    "sqlserver": ("sql",),
+    "microsoftsqlserver": ("sql",),
+    "tsql": ("sql",),
+    "plsql": ("sql",),
+    "sqlite": ("sql",),
+    "oraclesql": ("sql",),
+    "typescript": ("javascript",),
+    "react": ("javascript",),
+    "django": ("python",),
+    "flask": ("python",),
+    "fastapi": ("python",),
+    "pandas": ("python",),
+}
+
+_SKILL_QUALIFIER_SUFFIX = re.compile(r"\s+(?:fundamentals|basics)$")
+# "react.js" / "reactjs" -> "react"; "node.js" -> "node". Applied to both the
+# candidate and the job side, so the stripping is symmetric.
+_JS_SUFFIX = re.compile(r"(?<=[a-z])js$")
+
+
+def skill_match_key(skill: str) -> str:
+    """Matching key for a skill: tolerant of punctuation, spacing, a few common
+    aliases, and ".js" suffixes. "C++" and "C#" stay distinct from "C"."""
+    text = normalize_skill(skill)
+    if not text:
+        return ""
+    text = text.replace("c++", "cplusplus").replace("c#", "csharp").replace("&", "and")
+    text = _SKILL_QUALIFIER_SUFFIX.sub("", text)
+    compact = re.sub(r"[^a-z0-9]", "", text)
+    compact = _SKILL_ALIASES.get(compact, compact)
+    if compact not in _SKILL_ALIASES.values():
+        compact = _JS_SUFFIX.sub("", compact) or compact
+    return compact
+
+
+def _candidate_skill_keys(user_skills: list[str]) -> set[str]:
+    keys = {skill_match_key(skill) for skill in user_skills}
+    keys.discard("")
+    for key in list(keys):
+        keys.update(_SKILL_IMPLIES.get(key, ()))
+    return keys
+
+
 def skill_match(user_skills: list[str], job_required_skills: list[str]) -> SkillMatchResult:
     """Skill Match % = matched required skills / total required skills * 100."""
-    required = _dedupe_normalized(job_required_skills, normalize_skill)
+    required = _dedupe_normalized(job_required_skills, skill_match_key)
     if not required:
         return SkillMatchResult(percentage=None, matched_skills=[], missing_skills=[])
-    candidate = {normalize_skill(skill) for skill in user_skills if normalize_skill(skill)}
+    candidate = _candidate_skill_keys(user_skills)
     matched = [display for key, display in required.items() if key in candidate]
     missing = [display for key, display in required.items() if key not in candidate]
     percentage = round((len(matched) / len(required)) * 100, 2)
     return SkillMatchResult(percentage=percentage, matched_skills=matched, missing_skills=missing)
+
+
+_BACHELOR, _MASTER, _DOCTORATE = 1, 2, 3
+
+# Compact degree text -> level.
+_DEGREE_LEVELS = {
+    **dict.fromkeys(
+        (
+            "bachelor", "bachelors", "bachelorsdegree", "bachelordegree",
+            "undergraduate", "undergraduatedegree", "bs", "bsc", "ba", "be",
+            "beng", "btech", "bba", "bcs", "bscs", "bsse", "bsit", "bcom",
+            "bachelorofscience", "bachelorofarts", "bachelorofengineering",
+            "bacheloroftechnology", "bachelorofbusinessadministration",
+            "bachelorofcommerce", "bachelorofcomputerscience",
+        ),
+        _BACHELOR,
+    ),
+    **dict.fromkeys(
+        (
+            "master", "masters", "mastersdegree", "masterdegree", "ms", "msc",
+            "ma", "mba", "meng", "mtech", "mphil", "mcs", "mscs", "mcom",
+            "masterofscience", "masterofarts", "masterofengineering",
+            "masterofbusinessadministration", "masterofphilosophy",
+        ),
+        _MASTER,
+    ),
+    **dict.fromkeys(("phd", "doctorate", "doctoral", "doctorofphilosophy"), _DOCTORATE),
+}
+
+# Degree abbreviations that already name a field.
+_DEGREE_IMPLIED_FIELD = {
+    "bscs": "computerscience",
+    "mscs": "computerscience",
+    "bcs": "computerscience",
+    "mcs": "computerscience",
+    "bachelorofcomputerscience": "computerscience",
+    "bsse": "softwareengineering",
+    "bsit": "informationtechnology",
+    "bba": "businessadministration",
+    "mba": "businessadministration",
+}
+
+_FIELD_ALIASES = {
+    "cs": "computerscience",
+    "se": "softwareengineering",
+    "it": "informationtechnology",
+    "ai": "artificialintelligence",
+}
+
+
+def _compact(text: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", text)
+
+
+def _parse_qualification(key: str) -> tuple[int | None, str | None]:
+    """Split a normalized qualification into ``(degree level, field)``.
+
+    "bachelor's in computer science" -> (1, "computerscience");
+    "bs" -> (1, None); "computer science" -> (None, "computerscience").
+    Anything that is not recognizably a degree and/or field still yields a
+    field-only key, which only matches an equal field.
+    """
+    text = re.sub(r"\([^)]*\)", " ", key).replace("&", "and")
+    degree_part, sep, field_part = text.partition(" in ")
+    if not sep:
+        # "BS Computer Science" (no "in"): try the leading word as a degree.
+        head, _, rest = text.strip().partition(" ")
+        if _compact(head) in _DEGREE_LEVELS and rest:
+            degree_part, field_part = head, rest
+        else:
+            degree_part, field_part = text, ""
+
+    degree = _compact(degree_part.replace("degree", ""))
+    level = _DEGREE_LEVELS.get(degree)
+    if level is None:
+        # Not a degree after all: the whole string is a field of study.
+        field = _compact(text)
+        return None, _FIELD_ALIASES.get(field, field) or None
+
+    field = _compact(field_part)
+    field = _FIELD_ALIASES.get(field, field) or _DEGREE_IMPLIED_FIELD.get(degree)
+    return level, field or None
+
+
+def _fields_match(required: str, candidate: str) -> bool:
+    if required == candidate:
+        return True
+    # "Economics and Data Science" covers "Data Science".
+    return len(required) >= 6 and required in candidate
+
+
+def _degree_requirement_met(
+    required: tuple[int | None, str | None],
+    candidates: list[tuple[int | None, str | None]],
+) -> bool:
+    """A required degree is met by a candidate degree of the same or higher
+    level in a matching field (the field is skipped when the job names none)."""
+    req_level, req_field = required
+    if req_level is None:
+        return False  # Field-only / unrecognized requirements need an exact match.
+    for level, field in candidates:
+        if level is None or level < req_level:
+            continue
+        if req_field is None or (field is not None and _fields_match(req_field, field)):
+            return True
+    return False
 
 
 def qualification_match(
@@ -151,8 +341,15 @@ def qualification_match(
     candidate = {
         normalize_qualification(q) for q in candidate_qualifications if normalize_qualification(q)
     }
-    matched = [display for key, display in required.items() if key in candidate]
-    missing = [display for key, display in required.items() if key not in candidate]
+    parsed_candidate = [_parse_qualification(q) for q in candidate]
+
+    def satisfied(key: str) -> bool:
+        return key in candidate or _degree_requirement_met(
+            _parse_qualification(key), parsed_candidate
+        )
+
+    matched = [display for key, display in required.items() if satisfied(key)]
+    missing = [display for key, display in required.items() if not satisfied(key)]
     percentage = round((len(matched) / len(required)) * 100, 2)
     return QualificationMatchResult(
         percentage=percentage, matched_qualifications=matched, missing_qualifications=missing

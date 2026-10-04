@@ -37,7 +37,7 @@ real job opportunities with Skill Match % and Qualification Match % scores.
   abstraction, normalization, idempotent ingestion/upsert (dedup by
   `(source, external_id)`), demo job provider, migration, and a public
   browse/search/filter/paginate/sort API
-- **Demo job seeding**: `python -m app.cli seed-jobs` upserts 10 fictional
+- **Demo job seeding**: `python -m app.cli seed-jobs` upserts 25 fictional
   jobs (see "Seeding Demo Jobs" below)
 - Application tracking backend (create/list/update), per-user scoping
 - SQLAlchemy models + Alembic migrations for the full schema
@@ -196,7 +196,7 @@ App at http://localhost:3000
 `GET http://localhost:8000/api/health` → `{"status": "ok", ...}`
 
 ## Seeding Demo Jobs
-The job catalog starts empty. To load the bundled fictional demo jobs (10
+The job catalog starts empty. To load the bundled fictional demo jobs (25
 postings across fictitious companies — clearly-marked demo apply links, no
 real companies or external APIs), run from `backend/`:
 

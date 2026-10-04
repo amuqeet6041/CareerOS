@@ -10,9 +10,9 @@ def test_demo_provider_is_active_provider():
     assert isinstance(get_active_provider(), DemoJobProvider)
 
 
-def test_demo_provider_returns_ten_jobs():
+def test_demo_provider_returns_twenty_five_jobs():
     jobs = DemoJobProvider().fetch_jobs()
-    assert len(jobs) == 10
+    assert len(jobs) == 25
     assert all(isinstance(job, ProviderJob) for job in jobs)
 
 
@@ -52,6 +52,21 @@ def test_demo_titles_match_expected_roles():
         "Financial Data Analyst",
         "BI Analyst",
         "Research Analyst",
+        "Frontend Developer",
+        "Backend Engineer (Node.js)",
+        "Full Stack Developer",
+        "DevOps Engineer",
+        "Mobile App Developer (Flutter)",
+        "Machine Learning Engineer",
+        "Junior Cybersecurity Analyst",
+        "QA Automation Engineer",
+        "UI/UX Designer",
+        "Digital Marketing Executive",
+        "Accountant",
+        "HR Coordinator",
+        "Graphic Designer Intern",
+        "Project Coordinator",
+        "Customer Support Specialist",
     }
 
 

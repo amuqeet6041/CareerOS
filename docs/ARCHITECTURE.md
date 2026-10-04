@@ -67,7 +67,7 @@ jobs (+ job_skills, job_qualifications)
   never touch the database. Providers that fail to fetch raise
   `JobIngestionError`, which surfaces loudly instead of being swallowed.
 - **The bundled `DemoJobProvider`** (`app/services/providers/demo.py`) serves
-  10 fictional jobs using invented company names and clearly-marked demo apply
+  25 fictional jobs using invented company names and clearly-marked demo apply
   links (`careeros-demo.example`), so the whole pipeline works with no API key.
 - **Normalization** maps free-form employment types/work modes to the canonical
   sets (`full-time | part-time | contract | internship | temporary | freelance`,

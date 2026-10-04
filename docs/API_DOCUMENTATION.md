@@ -118,7 +118,7 @@ over the network). It runs via the CLI:
 cd backend
 python -m app.cli seed-jobs      # uses the demo provider, upserts, idempotent
 ```
-The demo provider loads 10 fictional jobs (invented companies, clearly-marked
+The demo provider loads 25 fictional jobs (invented companies, clearly-marked
 demo apply URLs) so the browse/search APIs can be exercised without any
 external API key. Real providers will plug into the same
 `JobProvider` -> `NormalizedJob` -> upsert pipeline in a later phase.
