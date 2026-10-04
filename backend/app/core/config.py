@@ -81,10 +81,11 @@ class Settings(BaseSettings):
     # and may be reached via localhost or 127.0.0.1. Never use "*" with
     # credentials. Add real frontend origins before any production deploy.
     ALLOWED_ORIGINS: list[str] = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+    "https://career-os-five-lac.vercel.app",
     ]
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
