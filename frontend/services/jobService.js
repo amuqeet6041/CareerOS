@@ -31,3 +31,9 @@ export async function getJobById(id) {
 export async function getJobMatch(id) {
   return apiFetch(`/api/jobs/${id}/match`);
 }
+// GET /api/jobs/recommendations -> { source, queries, location, fetched_at,
+//   items: [{ job: JobResponse, match: JobMatchResponse }] } (auth required).
+// Live jobs searched from the user's resume, best match first.
+export async function getLiveRecommendations({ refresh = false } = {}) {
+  return apiFetch(`/api/jobs/recommendations${refresh ? "?refresh=true" : ""}`);
+}

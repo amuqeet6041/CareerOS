@@ -74,11 +74,53 @@ _SECTION_HEADINGS: dict[str, set[str]] = {
         "licences",
         "professional certifications",
         "professional certificates",
+        "certifications & achievements",
+        "certifications and achievements",
     },
 }
 
+# Headings for sections we do not parse. Recognizing them closes the current
+# section so e.g. project bullets after "Skills" are not read as skills.
+_OTHER_HEADINGS = {
+    "summary",
+    "professional summary",
+    "profile",
+    "objective",
+    "career objective",
+    "about me",
+    "projects",
+    "personal projects",
+    "academic projects",
+    "achievements",
+    "awards",
+    "languages",
+    "interests",
+    "hobbies",
+    "references",
+    "volunteer experience",
+    "publications",
+}
+
+
+def _collapse(text: str) -> str:
+    return re.sub(r"\s+", "", text)
+
+
+# Letter-spaced headings ("T E C H N I C A L  S K I L L S") are common in
+# designed PDF templates; PDF extraction keeps the spaces, sometimes merging a
+# few letters ("P R O F E S S I O N AL"). Compare whitespace-free forms.
+_COLLAPSED_HEADINGS: dict[str, str | None] = {
+    _collapse(alias): section
+    for section, aliases in _SECTION_HEADINGS.items()
+    for alias in aliases
+}
+_COLLAPSED_HEADINGS.update(
+    {_collapse(alias): None for alias in _OTHER_HEADINGS}
+)
+_OTHER_SECTION = "__other__"
+
 _BULLET_PREFIX_RE = re.compile(
-    r"^\s*(?:[•▪●◦‣❖]\s*|\*\s+|\-\s+|–\s+|—\s+|\d{1,2}[.)]\s*)"
+    r"^\s*(?:[•▪●◦‣❖▸►]\s*|\*\s+|\-\s+|–\s+|—\s+|\d{1,2}[.)]\s*)"
 )
 _DEGREE_RE = re.compile(
     r"(\b(?:Bachelor'?s?|Master'?s?|Associate'?s?)\b"
@@ -110,7 +152,9 @@ _COMPANY_KEYWORDS_RE = re.compile(
 )
 _EXPERIENCE_COMMA_RE = re.compile(r"^(.{1,80}?),\s*(.{1,100})$")
 _CERT_SEPARATORS = (" – ", " — ", " | ", " · ", " - ", " issued by ", " by ")
-_SKILL_SPLIT_RE = re.compile(r"[,;]|\s+•\s*|\s+\*\s*|\s*\|\s*|\u2022|\u25cf")
+_SKILL_SPLIT_RE = re.compile(
+    r"[,;]|\s+•\s*|\s+\*\s*|\s*\|\s*|•|●|\s*·\s*|\s+\.\s+"
+)
 _SKILL_COLON_RE = re.compile(r"^[A-Za-z][A-Za-zÆØÅ&/+.\- ]{0,20}:\s*(.+)$")
 _SKILL_STOP_WORDS = {
     "and",
@@ -140,11 +184,14 @@ def _strip_bullet(line: str) -> str:
 
 def _heading_for(line: str) -> str | None:
     key = line.lower().rstrip(".:").strip()
-    if not key or len(key) > 45:
+    if not key or len(key) > 80:
         return None
     for section, aliases in _SECTION_HEADINGS.items():
         if key in aliases:
             return section
+    collapsed = _collapse(key)
+    if len(collapsed) <= 45 and collapsed in _COLLAPSED_HEADINGS:
+        return _COLLAPSED_HEADINGS[collapsed] or _OTHER_SECTION
     return None
 
 
@@ -164,7 +211,7 @@ def _split_sections(lines: list[str]) -> dict[str, list[str]]:
                 sections[current].append("")
             continue
         if heading:
-            current = heading
+            current = None if heading == _OTHER_SECTION else heading
             continue
         if current:
             sections[current].append(cleaned)

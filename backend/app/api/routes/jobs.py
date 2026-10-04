@@ -8,7 +8,17 @@ from app.core.database import get_db
 from app.models.job import Job
 from app.models.user import User
 from app.schemas.job import JobListResponse, JobResponse, SavedJobOut
-from app.schemas.matching import JobMatchResponse
+from app.schemas.matching import (
+    JobMatchResponse,
+    LiveRecommendationItem,
+    LiveRecommendationsResponse,
+)
+from app.services.live_job_search import (
+    LiveSearchFailed,
+    LiveSearchNotConfigured,
+    NoSearchableProfile,
+    recommend_live_jobs,
+)
 from app.services.job_search import (
     MAX_PAGE_SIZE,
     SORT_OPTIONS,
@@ -20,7 +30,7 @@ from app.services.saved_job_service import (
     get_saved_job,
     list_saved_jobs,
 )
-from app.services.matching_engine import COMPONENT_WEIGHTS_PERCENT
+from app.services.matching_engine import COMPONENT_WEIGHTS_PERCENT, JobMatchResult
 from app.services.matching_service import match_resume_to_job
 from app.services.resume_service import get_resume_for_user
 from app.utils.job_fields import (
@@ -102,6 +112,44 @@ def list_saved_jobs_route(
     return list_saved_jobs(db, current_user.id)
 
 
+@router.get("/recommendations", response_model=LiveRecommendationsResponse)
+def live_recommendations(
+    refresh: bool = Query(default=False, description="Bypass the cached result and query the live provider again"),
+    limit: int = Query(default=20, ge=1, le=50),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Live jobs searched from the authenticated user's resume, ranked by match.
+
+    Declared before ``/{job_id}`` so the literal segment wins.
+    """
+    resume = get_resume_for_user(db, current_user.id)
+    if resume is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No resume uploaded yet. Upload a resume before requesting recommendations.",
+        )
+    try:
+        result = recommend_live_jobs(db, current_user.id, resume, refresh=refresh, limit=limit)
+    except LiveSearchNotConfigured as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except NoSearchableProfile as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except LiveSearchFailed as exc:
+        raise HTTPException(status_code=502, detail=f"Live job search failed: {exc}") from exc
+
+    return LiveRecommendationsResponse(
+        source=result.source,
+        queries=result.queries,
+        location=result.location,
+        fetched_at=result.fetched_at,
+        items=[
+            LiveRecommendationItem(job=job, match=_match_response(job.id, match))
+            for job, match in result.ranked
+        ],
+    )
+
+
 @router.get("/{job_id}", response_model=JobResponse)
 def get_job(
     job_id: int,
@@ -146,9 +194,12 @@ def get_job_match(
             detail="No resume uploaded yet. Upload a resume before requesting a match.",
         )
 
-    result = match_resume_to_job(resume, job)
+    return _match_response(job.id, match_resume_to_job(resume, job))
+
+
+def _match_response(job_id: int, result: JobMatchResult) -> JobMatchResponse:
     return JobMatchResponse(
-        job_id=job.id,
+        job_id=job_id,
         skill_match_percentage=result.skill_match_percentage,
         qualification_match_percentage=result.qualification_match_percentage,
         experience_match_percentage=result.experience_match_percentage,

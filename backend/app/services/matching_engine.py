@@ -179,6 +179,12 @@ _SKILL_IMPLIES = {
     "flask": ("python",),
     "fastapi": ("python",),
     "pandas": ("python",),
+    "statisticalanalysis": ("statistics",),
+    "regressionanalysis": ("statistics",),
+    "hypothesistesting": ("statistics",),
+    "exploratorydataanalysis": ("dataanalysis",),
+    "powerbi": ("datavisualization",),
+    "tableau": ("datavisualization",),
 }
 
 _SKILL_QUALIFIER_SUFFIX = re.compile(r"\s+(?:fundamentals|basics)$")
@@ -190,7 +196,8 @@ _JS_SUFFIX = re.compile(r"(?<=[a-z])js$")
 def skill_match_key(skill: str) -> str:
     """Matching key for a skill: tolerant of punctuation, spacing, a few common
     aliases, and ".js" suffixes. "C++" and "C#" stay distinct from "C"."""
-    text = normalize_skill(skill)
+    # "Python (Intermediate)" / "MS Excel (Certified)" -> the skill itself.
+    text = normalize_skill(re.sub(r"\([^)]*\)", " ", skill or ""))
     if not text:
         return ""
     text = text.replace("c++", "cplusplus").replace("c#", "csharp").replace("&", "and")

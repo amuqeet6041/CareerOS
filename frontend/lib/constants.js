@@ -41,11 +41,8 @@ export const PAGE_SIZE = 20;
 // server-side scoring so the whole result set can be ordered by match.
 export const MAX_LIST_MATCHES = 12;
 
-// Bounded candidate set for dashboard recommendations (brief: 12-20 jobs
-// maximum). One jobs request fetches up to this many newest jobs, then one
-// /api/jobs/{id}/match request is made per candidate. Only candidates with a
-// non-null overall match score are eligible to be shown at all.
-export const RECOMMENDATION_CANDIDATES = 15;
+// Live recommendations shown on the dashboard (from /api/jobs/recommendations,
+// already ranked by match on the backend).
 export const RECOMMENDATION_DISPLAY_COUNT = 5;
 
 export const APP_NAME = "CareerOS";

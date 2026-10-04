@@ -1,37 +1,34 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getJobs, getJobMatch } from "@/services/jobService";
-import {
-  RECOMMENDATION_CANDIDATES,
-  RECOMMENDATION_DISPLAY_COUNT,
-} from "@/lib/constants";
+import { getLiveRecommendations } from "@/services/jobService";
+import { RECOMMENDATION_DISPLAY_COUNT } from "@/lib/constants";
 
 /**
- * Deterministic, bounded dashboard recommendations.
+ * Live, resume-driven dashboard recommendations.
  *
- * Fetch up to `candidates` newest jobs (one request), then one
- * /api/jobs/{id}/match per candidate. A job is only eligible when its overall
- * match score is real and meaningful: non-null and above zero (a 0 score means
- * zero overlap with the resume -- not a recommendation). Eligible jobs are
- * sorted by overall match descending and the top `displayCount` are returned,
- * each paired with its match entry in the shape JobCard's MatchPill expects
- * ({ status: "success", data }).
+ * One request to /api/jobs/recommendations: the backend builds search queries
+ * from the user's resume, fetches live postings, and returns them ranked by
+ * match. Only jobs with a real, non-zero overall match are shown (0% means no
+ * overlap with the resume -- not a recommendation). Each entry is paired with
+ * its match in the shape JobCard's MatchPill expects ({ status, data }).
+ *
+ * The backend caches results per resume to protect the provider quota;
+ * `refetch` forces a fresh live search.
  *
  * Intentionally disabled when no resume exists so we never fire a doomed
- * batch of no-resume 404s.
+ * no-resume 404.
  */
 export function useJobRecommendations({
   enabled = true,
-  candidates = RECOMMENDATION_CANDIDATES,
   displayCount = RECOMMENDATION_DISPLAY_COUNT,
 } = {}) {
-  const [jobs, setJobs] = useState([]);
-  const [matchMap, setMatchMap] = useState({});
+  const [items, setItems] = useState([]);
+  const [queries, setQueries] = useState([]);
+  const [source, setSource] = useState(null);
   const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState(null);
-  const [recommendations, setRecommendations] = useState([]);
-  const [nonce, setNonce] = useState(0);
+  const [refresh, setRefresh] = useState(0);
   const cancelled = useRef(false);
 
   useEffect(() => {
@@ -40,46 +37,16 @@ export function useJobRecommendations({
     setLoading(true);
     setError(null);
 
-    getJobs({ page: 1, page_size: candidates })
+    getLiveRecommendations({ refresh: refresh > 0 })
       .then((data) => {
         if (cancelled.current) return;
-        const list = Array.isArray(data?.items)
-          ? data.items.slice(0, candidates)
-          : [];
-        setJobs(list);
-
-        if (list.length === 0) {
-          setMatchMap({});
-          setRecommendations([]);
-          return;
-        }
-
-        return Promise.allSettled(
-          list.map((job) => getJobMatch(job.id))
-        ).then((results) => {
-          if (cancelled.current) return;
-          const next = {};
-          results.forEach((result, idx) => {
-            const job = list[idx];
-            if (result.status === "fulfilled") {
-              next[job.id] = { status: "success", data: result.value };
-            } else {
-              const status = result.reason?.status;
-              const message = String(result.reason?.message || "").toLowerCase();
-              if (status === 401 || status === 403) {
-                next[job.id] = { status: "sign-in" };
-              } else if (status === 404 && message.includes("resume")) {
-                next[job.id] = { status: "no-resume" };
-              } else {
-                next[job.id] = { status: "error" };
-              }
-            }
-          });
-          setMatchMap(next);
-        });
+        setItems(Array.isArray(data?.items) ? data.items : []);
+        setQueries(Array.isArray(data?.queries) ? data.queries : []);
+        setSource(data?.source || null);
       })
       .catch((err) => {
         if (cancelled.current) return;
+        setItems([]);
         setError(err.message || "Couldn't load job recommendations");
       })
       .finally(() => {
@@ -89,39 +56,21 @@ export function useJobRecommendations({
     return () => {
       cancelled.current = true;
     };
-  }, [enabled, candidates, nonce]);
+  }, [enabled, refresh]);
 
-  useEffect(() => {
-    if (jobs.length === 0 || Object.keys(matchMap).length === 0) {
-      setRecommendations([]);
-      return;
-    }
-    const scored = jobs
-      .filter((job) => {
-        const match = matchMap[job.id];
-        return (
-          match?.status === "success" &&
-          match.data?.overall_match_percentage != null &&
-          match.data.overall_match_percentage > 0
-        );
-      })
-      .sort(
-        (a, b) =>
-          matchMap[b.id].data.overall_match_percentage -
-          matchMap[a.id].data.overall_match_percentage
-      )
-      .slice(0, displayCount)
-      .map((job) => ({ job, match: matchMap[job.id] }));
-    setRecommendations(scored);
-  }, [jobs, matchMap, displayCount]);
+  const recommendations = items
+    .filter(({ match }) => match?.overall_match_percentage > 0)
+    .slice(0, displayCount)
+    .map(({ job, match }) => ({ job, match: { status: "success", data: match } }));
 
   return {
     recommendations,
-    matchMap,
-    jobs,
-    candidateCount: jobs.length,
+    jobs: items.map(({ job }) => job),
+    candidateCount: items.length,
+    queries,
+    source,
     loading,
     error,
-    refetch: () => setNonce((value) => value + 1),
+    refetch: () => setRefresh((value) => value + 1),
   };
 }

@@ -27,7 +27,27 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
 
     LLM_API_KEY: str = ""
+    # Live job search (JSearch via RapidAPI). Empty JOBS_API_KEY disables
+    # live recommendations; the seeded job catalogue stays browsable.
     JOBS_API_KEY: str = ""
+    JOBS_API_HOST: str = "jsearch.p.rapidapi.com"
+    JOBS_DEFAULT_COUNTRY: str = "pk"
+    JOBS_DEFAULT_LOCATION: str = "Pakistan"
+    JOBS_MAX_QUERIES: int = 3
+    JOBS_DATE_POSTED: str = "month"
+    JOBS_TIMEOUT_SECONDS: int = 20
+    # Each query costs one request against the provider's monthly quota, so a
+    # user's results are reused until their resume changes or this expires.
+    JOBS_CACHE_MINUTES: int = 360
+    # Keyless fallback used when JOBS_API_KEY is empty: "jobicy" (real remote
+    # jobs, no key) or "" to disable live recommendations entirely.
+    JOBS_FALLBACK_PROVIDER: str = "jobicy"
+    # Jobicy region filter sent with each search, then a local filter that
+    # keeps only postings open to one of JOBICY_ALLOWED_REGIONS (most are
+    # country-locked, e.g. "USA"). Each query is cached for all users.
+    JOBICY_GEO: str = "apac"
+    JOBICY_ALLOWED_REGIONS: str = "anywhere,worldwide,global,apac,asia,pakistan"
+    JOBICY_CACHE_MINUTES: int = 360
 
     MAX_RESUME_SIZE_MB: int = 5
 

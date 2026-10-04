@@ -9,12 +9,18 @@ import DashboardSection, {
 } from "./DashboardSection";
 
 // Personalized recommendations. The orchestrator passes the ranked result of
-// the bounded useJobRecommendations hook (up to 5 jobs that have a real,
-// non-null overall match score). JobCard renders candidates with full
+// useJobRecommendations (up to 5 live jobs searched from the resume that have
+// a real, non-zero overall match score). JobCard renders candidates with full
 // save/apply controls and the same match presentation as the Jobs pages.
+
+// The keyless fallback provider's terms require a visible credit link.
+const SOURCE_CREDITS = {
+  jobicy: { label: "Jobicy", url: "https://jobicy.com" },
+};
 
 export default function RecommendedJobs({
   recommendations = [],
+  source = null,
   loading = false,
   error = null,
   onRetry = null,
@@ -36,7 +42,7 @@ export default function RecommendedJobs({
   return (
     <DashboardSection
       title="Recommended for you"
-      subtitle="Ranked by how well your resume matches each job."
+      subtitle="Live openings searched from your resume, ranked by how well you match."
       actionHref="/jobs"
       actionLabel="View all jobs"
     >
@@ -50,7 +56,7 @@ export default function RecommendedJobs({
           description={
             noResume
               ? "Upload and analyze your resume to get personalized job recommendations."
-              : "Try browsing all jobs or save some to keep an eye on them. Recommendations update as more scoring data is available."
+              : "No live openings closely matched your resume. Add preferred roles in your profile to widen the search, or browse all jobs."
           }
           action={noResume ? (
             <Link
@@ -79,6 +85,19 @@ className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text
           ))}
         </div>
       )}
+      {SOURCE_CREDITS[source] && !error ? (
+        <p className="mt-4 text-xs text-muted">
+          Remote jobs via{" "}
+          <a
+            href={SOURCE_CREDITS[source].url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-accent"
+          >
+            {SOURCE_CREDITS[source].label}
+          </a>
+        </p>
+      ) : null}
     </DashboardSection>
   );
 }

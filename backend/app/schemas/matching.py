@@ -1,4 +1,8 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
+
+from app.schemas.job import JobResponse
 
 
 class JobMatchResponse(BaseModel):
@@ -26,3 +30,18 @@ class JobMatchResponse(BaseModel):
     maximum_required_years: float | None = None
     component_weights: dict[str, float]
     summary: str
+
+class LiveRecommendationItem(BaseModel):
+    job: JobResponse
+    match: JobMatchResponse
+
+
+class LiveRecommendationsResponse(BaseModel):
+    """Live jobs fetched for the user's resume, best match first
+    (``GET /api/jobs/recommendations``)."""
+
+    source: str
+    queries: list[str]
+    location: str | None = None
+    fetched_at: datetime
+    items: list[LiveRecommendationItem]

@@ -78,6 +78,26 @@ endpoint).
   `skills` and `qualifications`. ✅ implemented. Returns `404` when the job
   does not exist. Returning an inactive/expired job by id is allowed (the
   record keeps its `is_active=false`).
+- `GET /jobs/recommendations` — Live jobs searched from the authenticated
+  user's resume, ranked by match. ✅ implemented (requires auth). Search terms come from the profile's preferred roles, then
+  the resume's experience titles (ownership titles like "Founder" are dropped),
+  then its top skills; each becomes `"<term> in <location>"` (location = the
+  profile's preferred location or `JOBS_DEFAULT_LOCATION`), at most
+  `JOBS_MAX_QUERIES` queries. Postings are fetched from JSearch (RapidAPI)
+  when `JOBS_API_KEY` is set; otherwise from the keyless Jobicy fallback
+  (`JOBS_FALLBACK_PROVIDER=jobicy`): remote jobs searched by tag with
+  `geo=JOBICY_GEO`, kept only when open to `JOBICY_ALLOWED_REGIONS`, and
+  credited to Jobicy in the UI as its terms require. Jobs are upserted with
+  `source="jsearch"` / `"jobicy"` and matched like `GET /jobs/{id}/match`.
+  Results are cached per user until the resume changes or
+  `JOBS_CACHE_MINUTES` pass.
+  - `refresh` — `true` bypasses the cache (default `false`).
+  - `limit` — max items, 1–50 (default `20`).
+  - Returns `{ "source": "jsearch" | "jobicy", "queries": [...], "location": "Pakistan",
+    "fetched_at": "...", "items": [{ "job": JobResponse, "match": JobMatchResponse }] }`.
+  - Errors: `404` no resume; `422` resume has no titles/skills to search;
+    `502` provider failure (bad key, quota, network); `503` no
+    `JOBS_API_KEY` and the fallback is disabled.
 - `POST /jobs/{job_id}/save` — Save a job for the current user.
   ⚠️ Requires auth; persistence to `SavedJob` not yet wired (Phase 5).
 
@@ -120,8 +140,9 @@ python -m app.cli seed-jobs      # uses the demo provider, upserts, idempotent
 ```
 The demo provider loads 25 fictional jobs (invented companies, clearly-marked
 demo apply URLs) so the browse/search APIs can be exercised without any
-external API key. Real providers will plug into the same
-`JobProvider` -> `NormalizedJob` -> upsert pipeline in a later phase.
+external API key. The live JSearch and Jobicy providers (used by
+`GET /jobs/recommendations`) plug into the same `JobProvider` ->
+`NormalizedJob` -> upsert pipeline.
 
 ## Matching
 - `POST /matching` — Calculate skill/qualification match percentages given

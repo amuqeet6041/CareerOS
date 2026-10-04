@@ -98,6 +98,7 @@ export default function StudentDashboard() {
 
       <RecommendedJobs
         recommendations={recommendations.recommendations}
+        source={recommendations.source}
         loading={recommendations.loading}
         error={recommendations.error}
         onRetry={recommendations.refetch}
